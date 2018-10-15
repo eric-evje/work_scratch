@@ -1,0 +1,158 @@
+reagents:
+    valve_1:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: FORM80
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5448.71}
+        2: {area_under_curve: 5512708635.284136, grams: 0.0, mean_static_pressure: 5433.475}
+        3: {area_under_curve: 985337621.4862243, grams: 0.0, mean_static_pressure: 5431.37}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_10:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: 5XSASC
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5461.525}
+        2: {area_under_curve: 2217430255.5067053, grams: 0.0, mean_static_pressure: 5429.71}
+        3: {area_under_curve: 1781210226.659999, grams: 0.0, mean_static_pressure: 5413.04}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_11:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: SOLiDWASH
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5410.69}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5430.74}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5442.44}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_12:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: IMAGING_BUFFER
+        1: {area_under_curve: 12521845529.286867, grams: 0.0, mean_static_pressure: 5475.755}
+        2: {area_under_curve: -13261487122.444069, grams: 0.0, mean_static_pressure: 5810.68}
+        3: {area_under_curve: 769156624.0833776, grams: 0.0, mean_static_pressure: 5799.535}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_2:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: SEQMIX
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5700.835}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5511.06}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5441.7}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_3:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: CLEAVEPART1
+        1: {area_under_curve: 1219358749.5536258, grams: 0.0, mean_static_pressure: 5390.62}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5394.575}
+        3: {area_under_curve: 1633187017.3865197, grams: 0.0, mean_static_pressure: 5394.96}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_4:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: CLEAVEMIX
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5523.78}
+        2: {area_under_curve: 0.0, grams: 0.0, mean_static_pressure: 5832.19}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5812.365}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_5:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: N0_PRIMER
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5790.195}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5789.75}
+        3: {area_under_curve: 916292044.9367689, grams: 0.0, mean_static_pressure: 5791.08}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_6:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: N1_PRIMER
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5781.2}
+        2: {area_under_curve: 922759108.9116873, grams: 0.0, mean_static_pressure: 5782.21}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5781.19}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_7:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: N2_PRIMER
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5772.94}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5774.58}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5780.365}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_8:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: N3_PRIMER
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5472.23}
+        2: {area_under_curve: 1037465110.3960624, grams: 0.0, mean_static_pressure: 5472.155}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5471.97}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+    valve_9:
+        dispense_ms: 2000.0
+        flush_cal_ms: 4000.0
+        baseline_ms: 1500
+        post_sample_settle_time_ms: 3
+        short_name: N4_PRIMER
+        1: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5492.945}
+        2: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5490.83}
+        3: {area_under_curve: .nan, grams: 0.0, mean_static_pressure: 5644.51}
+        mean_grams: 0.0
+        microliters_to_time_lambda: 'lambda microliters: None'
+        mean_grams_flush: 0.0
+        microliters_to_time_lambda_flush: 'lambda microliters: None'
+short_name: Kasey testing map_2018-10-01_15:00:38
