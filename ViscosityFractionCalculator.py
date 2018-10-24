@@ -30,10 +30,13 @@ def solution_viscosity(volume_percent, solute_den=1.13, solute_vis=0.003302):
         volume_percent: the percent of the solution made up by the solute
         solute_den: density of the solute in g/cm3
         solute_vis: dynamic viscosity of the solute in Pa*s
+    returns:
+        kinematic viscosity of solution in centiStokes
     '''
     #Variables ----------------
+    volume_percent = float(volume_percent)
     waterDen = .9982 #Density of water (g/cm3)
-    water_vol = 100 - volume_percent
+    water_vol = 100.0 - volume_percent
     water_vis = 0.00089 #Pa * s
     T = 20.0 # Constant for temperature in C
 
@@ -59,8 +62,8 @@ def solution_viscosity(volume_percent, solute_den=1.13, solute_vis=0.003302):
     print ("Mass fraction of mixture =", round(mass_fraction, 5))
     print ("Volume fraction of mixture =", round(vol_fraction, 5))
     print ("Density of mixture =", round(density_mix,5),"g/cm3")
-    print ("Dynamic Viscosity of mixture =",round(viscosity_mix,5), "Ns/m2")
-    print ("Kinematic Viscosity of mixture =",round(viscosity_mix_kin,5), "centiStokes")
+    print ("Dynamic Viscosity of mixture =", round(viscosity_mix,5), "Ns/m2")
+    print ("Kinematic Viscosity of mixture =", round(viscosity_mix_kin,5), "centiStokes")
 
     return viscosity_mix_kin
 
@@ -73,8 +76,13 @@ def correction_factor(viscosity_kin):
 
     returns: Decmial correction factor
     '''
+    # Equation found in G:\Team Drives\Engineering\Development\Projects\
+    # SubsystemsProjects\FluidicsUnit\Testing\20181003_formamide_dispense_volume_troubleshooting\
+    # 20181004_Regression_flow_rate_vs formamide_concentration.xlsx
+    correction_factor = -0.306 * math.log(viscosity_kin) + 0.9642
+    print ("correction factor for solution is %f" % correction_factor) 
 
-    return viscosity_kin
+    return correction_factor
 
 if __name__ == '__main__':
 
