@@ -22,6 +22,15 @@ import math
 import argparse
 
 def solution_viscosity(volume_percent, solute_den=1.13, solute_vis=0.003302):
+    '''
+    Function to compute the viscosity of an aqueous solution. The default density and viscosity
+    are for formamide. The temperature is 20C as a default and cannot be changed. 
+
+    params: 
+        volume_percent: the percent of the solution made up by the solute
+        solute_den: density of the solute in g/cm3
+        solute_vis: dynamic viscosity of the solute in Pa*s
+    '''
     #Variables ----------------
     waterDen = .9982 #Density of water (g/cm3)
     water_vol = 100 - volume_percent
@@ -55,6 +64,18 @@ def solution_viscosity(volume_percent, solute_den=1.13, solute_vis=0.003302):
 
     return viscosity_mix_kin
 
+def correction_factor(viscosity_kin):
+    '''
+    Function to calculate the viscosity correction factor for the V2 fluidics unit.
+
+    params: 
+        viscosity_kin: the kinematic viscosity of the reagent in centiStokes
+
+    returns: Decmial correction factor
+    '''
+
+    return viscosity_kin
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Process incoming solute information.')
@@ -68,4 +89,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     viscosity_mix_kin = solution_viscosity(args.volume_percent, args.solute_den, args.solute_vis)
-    
+    vis_correction_f = correction_factor(viscosity_mix_kin)
+
