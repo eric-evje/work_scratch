@@ -18,28 +18,36 @@ void processIncoming(){
 		Serial.print(incoming_byte);
 		Serial.print("\n");
 
-		if (incoming_byte == "R"){
+		if (incoming_byte == "R\n"){
 			digitalWrite(1, HIGH);
 			delay(100);
 			digitalWrite(1, LOW);
+			Serial.print("Got an R");
+			Serial.print("\n");
 		}
 
-		else if(incoming_byte == "H"){
+		else if(incoming_byte == "H\n"){
 			digitalWrite(2, HIGH);
 			delay(100);
 			digitalWrite(2, LOW);
+			Serial.print("Got an H");
+			Serial.print("\n");
 		}
 
-		else if(incoming_byte == "U"){
+		else if(incoming_byte == "U\n"){
 			digitalWrite(3, HIGH);
 			delay(100);
 			digitalWrite(3, LOW);
+			Serial.print("Got a U");
+			Serial.print("\n");
 		}
 
-		else if(incoming_byte == "S"){
+		else if(incoming_byte == "S\n"){
 			digitalWrite(4, HIGH);
 			delay(100);
 			digitalWrite(4, LOW);
+			Serial.print("Got an S");
+			Serial.print("\n");
 		}
 	}
 		
