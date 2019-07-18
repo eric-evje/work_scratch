@@ -52,7 +52,7 @@ def get_sheet_names(creds, service):
     tab_names = []
     for i in range(len(values)):
         tab_names.append("'" + values[i][0] + "'!A:K")
-    print(tab_names)
+    # print(tab_names)
 
     return tab_names
 
@@ -78,7 +78,7 @@ def scan_for_dates(creds, service, tab):
                 if engineer != "unknown":
                     break
             except(IndexError):
-                print("index error")
+                # print("index error")
                 pass
 
         for row in values:
@@ -88,7 +88,7 @@ def scan_for_dates(creds, service, tab):
                     row.insert(0, engineer)
                     row_list.append(row)
             except(IndexError):
-                print("index error")
+                # print("index error")
                 pass
     except HttpError as e:
         print(e)
