@@ -4,13 +4,17 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from googleapiclient.errors import HttpError
+
+import pandas as pd
+import numpy as np
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '18mWf_41NHGjO9si4ZmuvqOpLuF-8BuHsBgv4AzrQmCY'
-SAMPLE_RANGE_NAME = "'-00054'!A:K"
+SAMPLE_RANGE_NAME = "'SheetNames'!A:B"
 
 def credentials():
     """Shows basic usage of the Sheets API.
@@ -39,30 +43,67 @@ def credentials():
 
     return(creds, service)
 
-def scan_for_dates(creds, service):
+def get_sheet_names(creds, service):
     # Call the Sheets API
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=SAMPLE_RANGE_NAME).execute()
+                                range="'SheetNames'!A:B").execute()
     values = result.get('values', [])
+    tab_names = []
+    for i in range(len(values)):
+        tab_names.append("'" + values[i][0] + "'!A:K")
+    print(tab_names)
 
-    if not values:
-        print('No data found.')
-    else:
-        print('Name, Major:')
-        for row in values:
-            try:
-                if row[7] == '1':
-                    print(row)
-            except(IndexError):
-                print("index error")
-                pass
-            # Print columns A and E, which correspond to indices 0 and 4.
-            # print('%s, %s' % (row[0], row[4]))
-            # if row[7] == "1":
-            # print(row)
+    return tab_names
 
+def scan_for_dates(creds, service, tab):
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+    cols = ('PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 'VENDOR PARTNO',
+        'MANUFACTURER', 'MANUF. PARTNO', 'APPROX. LEAD TIME [WEEKS]', 
+        'COST EA.', 'EXT COST', 'NOTES')
+    
+    row_list = []
+    try:
+        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                    range=tab).execute()
+        values = result.get('values', [])
+
+        if not values:
+            print('No data found.')
+        else:
+            # print('Name, Major:')
+            for row in values:
+                try:
+                    if row[7] == '6':
+                        print(row)
+                        row_list.append(row)
+                except(IndexError):
+                    print("index error")
+                    pass
+    except HttpError as e:
+        print(e)
+        pass
+    row_list.append(['','','','','','','','','','',''])
+    df = pd.DataFrame(row_list, columns=cols)    
+    return df
 
 if __name__ == '__main__':
     creds, service = credentials()
-    scan_for_dates(creds, service)
+
+    tab_names = get_sheet_names(creds, service)
+
+    order_df = []
+    for tab in tab_names:
+        order_df.append(scan_for_dates(creds, service, tab))
+
+    BOM_df = pd.concat(order_df)
+    # print(order_df)
+    print(BOM_df)
+
+    BOM_df['PARTNO'].replace('', np.nan, inplace=True)
+    BOM_df.dropna(subset=['PARTNO'], inplace=True)
+
+    stats_file_name = "Results.csv" 
+    BOM_df.to_csv(stats_file_name, sep=',', index=False)
+    
