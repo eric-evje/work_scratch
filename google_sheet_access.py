@@ -83,7 +83,7 @@ def scan_for_dates(creds, service, tab):
 
         for row in values:
             try:
-                if row[7] == '5':
+                if row[7] == '1':
                     # print(row)
                     row.insert(0, engineer)
                     row_list.append(row)
@@ -91,7 +91,7 @@ def scan_for_dates(creds, service, tab):
                 # print("index error")
                 pass
     except HttpError as e:
-        print(e)
+        print("Couldn't find sheet{}".format(tab))
         pass
     row_list.append(['','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
