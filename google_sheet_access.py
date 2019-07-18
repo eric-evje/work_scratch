@@ -59,32 +59,41 @@ def get_sheet_names(creds, service):
 def scan_for_dates(creds, service, tab):
     # Call the Sheets API
     sheet = service.spreadsheets()
-    cols = ('PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 'VENDOR PARTNO',
-        'MANUFACTURER', 'MANUF. PARTNO', 'APPROX. LEAD TIME [WEEKS]', 
-        'COST EA.', 'EXT COST', 'NOTES')
+    cols = ('ENGINEER', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES')
     
     row_list = []
     try:
         result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
                                     range=tab).execute()
         values = result.get('values', [])
+        engineer = "unknown"
+        for row in values:
+            try:
+                for cell in row:
+                    if cell == "Responsible Engineer":
+                        engineer = row[row.index(cell) + 1]
+                        break
+                if engineer != "unknown":
+                    break
+            except(IndexError):
+                print("index error")
+                pass
 
-        if not values:
-            print('No data found.')
-        else:
-            # print('Name, Major:')
-            for row in values:
-                try:
-                    if row[7] == '6':
-                        print(row)
-                        row_list.append(row)
-                except(IndexError):
-                    print("index error")
-                    pass
+        for row in values:
+            try:
+                if row[7] == '5':
+                    # print(row)
+                    row.insert(0, engineer)
+                    row_list.append(row)
+            except(IndexError):
+                print("index error")
+                pass
     except HttpError as e:
         print(e)
         pass
-    row_list.append(['','','','','','','','','','',''])
+    row_list.append(['','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
     return df
 
@@ -99,10 +108,12 @@ if __name__ == '__main__':
 
     BOM_df = pd.concat(order_df)
     # print(order_df)
-    print(BOM_df)
+    
 
     BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     BOM_df.dropna(subset=['PARTNO'], inplace=True)
+
+    print(BOM_df)
 
     stats_file_name = "Results.csv" 
     BOM_df.to_csv(stats_file_name, sep=',', index=False)
