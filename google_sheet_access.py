@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.errors import HttpError
+# import sys
 
 import pandas as pd
 import numpy as np
@@ -63,7 +64,11 @@ def scan_for_line_items(creds, service, tab):
     # Call the Sheets API
     sheet = service.spreadsheets()
     cols = ('PARENT', 'PARTNO', 'QTY')
-    
+
+    if tab[0] != "-":
+        df = pd.DataFrame(columns=cols)
+        return df
+
     row_list = []
     try:
         result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
@@ -94,21 +99,23 @@ def clean_up_frame(df):
             BOM_start = index + 1
             break 
     df = df[BOM_start:]
-    print("fixed df")
+    # print("fixed df")
     # print(df)
     return df
 
 def scan_for_dates(creds, service, tab):
+    parent = "RC-ASY" + tab
+    tab_name = "'" + tab + "'!A:K"
     # Call the Sheets API
     sheet = service.spreadsheets()
-    cols = ('ENGINEER', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
+    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES')
     
     row_list = []
     try:
         result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                    range=tab).execute()
+                                    range=tab_name).execute()
         values = result.get('values', [])
         engineer = "unknown"
         for row in values:
@@ -127,6 +134,7 @@ def scan_for_dates(creds, service, tab):
             try:
                 if row[7] == '1':
                     # print(row)
+                    row.insert(0, parent)
                     row.insert(0, engineer)
                     row_list.append(row)
             except(IndexError):
@@ -135,9 +143,61 @@ def scan_for_dates(creds, service, tab):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','',''])
+    row_list.append(['','','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
     return df
+
+def single_build_quantity_finder(part_no, parent, df, multiplier):
+    try:
+        df_orig = df
+        # qty = df.loc[df["PARTNO"] == part_no and df["PARENT"] == parent]
+        df = df.loc[df["PARTNO"] == part_no]
+        # print(df)
+        df = df.loc[df["PARENT"] == parent]
+        qty = df["QTY"].iloc[0]
+        multiplier = multiplier * int(qty)
+        try:
+            add_parts = 0
+            df_orig = df_orig.loc[df_orig["PARTNO"] == parent]
+            print("parent df: {}".format(df))
+            for i in range(0, len(df_orig)):
+                add_parts += int(df_orig["QTY"].iloc[i])
+            multiplier = multiplier * add_parts
+            return multiplier
+        except KeyError:
+            print("No match found")
+            return multiplier
+        except IndexError:
+            print("Not a part")
+            return multiplier
+        except ValueError:
+            print("not a number")
+            return multiplier
+
+    except KeyError:
+        print("No match found")
+        return multiplier
+    except IndexError:
+        print("Not a part")
+        return multiplier
+    except ValueError:
+        print("not a number")
+        return multiplier
+
+def order_quantity(BOM_df, order_df):
+    for i in range(0, len(order_df["PARTNO"])):
+        # print(i)
+        part_no = order_df["PARTNO"].iloc[i]
+        parent = order_df["PARENT"].iloc[i]
+        single_quantity = order_df["QTY."].iloc[i]
+        # print(part_no, single_quantity)
+
+        multiplier = single_build_quantity_finder(part_no, parent, BOM_df, 1)
+        print(multiplier)
+
+
+
+    return
 
 if __name__ == '__main__':
     creds, service = credentials()
@@ -156,12 +216,12 @@ if __name__ == '__main__':
 
     BOM_file_name = "BOM.csv" 
     full_BOM_df.to_csv(BOM_file_name, sep=',', index=False)
+    # sys.open(BOM_file_name)
 
 
     order_df = []
     for tab in tab_names:
-        tab_name = "'" + tab + "'!A:K"
-        order_df.append(scan_for_dates(creds, service, tab_name))
+        order_df.append(scan_for_dates(creds, service, tab))
 
     weekly_BOM_df = pd.concat(order_df)
     # print(order_df)
@@ -173,4 +233,5 @@ if __name__ == '__main__':
 
     stats_file_name = "Results.csv" 
     weekly_BOM_df.to_csv(stats_file_name, sep=',', index=False)
-    
+
+    order_quantity(full_BOM_df, weekly_BOM_df)
