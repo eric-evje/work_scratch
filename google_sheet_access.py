@@ -110,7 +110,7 @@ def scan_for_dates(creds, service, tab):
     sheet = service.spreadsheets()
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES')
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'EXTENDED_QTY')
     
     row_list = []
     try:
@@ -143,7 +143,7 @@ def scan_for_dates(creds, service, tab):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','','',''])
+    row_list.append(['','','','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
     return df
 
@@ -182,16 +182,21 @@ def multiple_assy_check(parent, df, add_parts=1):
 
 def order_quantity(BOM_df, order_df):
     for i in range(0, len(order_df["PARTNO"])):
-        # print(i)
-        part_no = order_df["PARTNO"].iloc[i]
-        print("root part number: {}".format(part_no))
-        parent = order_df["PARENT"].iloc[i]
-        single_quantity = order_df["QTY."].iloc[i]
-        # print(part_no, single_quantity)
+        try:
+            # print(i)
+            part_no = order_df["PARTNO"].iloc[i]
+            print("root part number: {}".format(part_no))
+            parent = order_df["PARENT"].iloc[i]
+            single_quantity = int(order_df["QTY."].iloc[i])
+            # print(part_no, single_quantity)
 
-        multiplier = multiple_assy_check(parent, BOM_df)
-        print("Final multiplier: {}\n\n".format(multiplier))
-    return
+            multiplier = multiple_assy_check(parent, BOM_df)
+            print("Final multiplier: {}\n\n".format(multiplier))
+
+            order_df["EXTENDED_QTY"].iloc[i] = single_quantity * multiplier
+        except ValueError:
+            print("single child assembly qty is not a number: {}".format(single_quantity))
+    return order_df
 
 if __name__ == '__main__':
     creds, service = credentials()
@@ -212,20 +217,17 @@ if __name__ == '__main__':
     full_BOM_df.to_csv(BOM_file_name, sep=',', index=False)
     # sys.open(BOM_file_name)
 
-
     order_df = []
     for tab in tab_names:
         order_df.append(scan_for_dates(creds, service, tab))
 
     weekly_BOM_df = pd.concat(order_df)
-    # print(order_df)
-    
+
     weekly_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     weekly_BOM_df.dropna(subset=['PARTNO'], inplace=True)
 
+    weekly_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df)
     # print(weekly_BOM_df)
 
     stats_file_name = "Results.csv" 
     weekly_BOM_df.to_csv(stats_file_name, sep=',', index=False)
-
-    order_quantity(full_BOM_df, weekly_BOM_df)
