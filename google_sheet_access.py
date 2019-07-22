@@ -147,56 +147,50 @@ def scan_for_dates(creds, service, tab):
     df = pd.DataFrame(row_list, columns=cols)    
     return df
 
-def single_build_quantity_finder(part_no, parent, df, multiplier):
+def multiple_assy_check(parent, df, add_parts=1):
     try:
-        df_orig = df
-        # qty = df.loc[df["PARTNO"] == part_no and df["PARENT"] == parent]
-        df = df.loc[df["PARTNO"] == part_no]
-        # print(df)
-        df = df.loc[df["PARENT"] == parent]
-        qty = df["QTY"].iloc[0]
-        multiplier = multiplier * int(qty)
-        try:
-            add_parts = 0
-            df_orig = df_orig.loc[df_orig["PARTNO"] == parent]
-            print("parent df: {}".format(df))
-            for i in range(0, len(df_orig)):
-                add_parts += int(df_orig["QTY"].iloc[i])
-            multiplier = multiplier * add_parts
-            return multiplier
-        except KeyError:
-            print("No match found")
-            return multiplier
-        except IndexError:
-            print("Not a part")
-            return multiplier
-        except ValueError:
-            print("not a number")
-            return multiplier
-
+        final_multiplier = 0
+        df_parent_as_part = df.loc[df["PARTNO"] == parent]
+        print("dataframe: \n{}".format(df_parent_as_part))
+        # print("Boolean: {}".format(df_parent_as_part.empty()))
+        empty = df_parent_as_part.empty
+        if  empty != True:
+            for i in range(0, len(df_parent_as_part)):
+                add_parts *= int(df_parent_as_part["QTY"].iloc[i])
+                print("add_parts: {}".format(add_parts))
+                new_parent = df_parent_as_part["PARENT"].iloc[i]
+                print("new_parent: {}".format(new_parent))
+                add_parts *= multiple_assy_check(new_parent, df)
+                print("add_parts after multiplication: {}".format(add_parts))
+                final_multiplier += add_parts
+            return final_multiplier
+        else:
+            # print("logic loop doesn't work")
+            return 1
     except KeyError:
         print("No match found")
-        return multiplier
+        return final_multiplier
     except IndexError:
         print("Not a part")
-        return multiplier
+        return final_multiplier
     except ValueError:
         print("not a number")
-        return multiplier
+        return final_multiplier
+    # finally:
+    #     print("going right to finally")
+    #     return add_parts
 
 def order_quantity(BOM_df, order_df):
     for i in range(0, len(order_df["PARTNO"])):
         # print(i)
         part_no = order_df["PARTNO"].iloc[i]
+        print("root part number: {}".format(part_no))
         parent = order_df["PARENT"].iloc[i]
         single_quantity = order_df["QTY."].iloc[i]
         # print(part_no, single_quantity)
 
-        multiplier = single_build_quantity_finder(part_no, parent, BOM_df, 1)
-        print(multiplier)
-
-
-
+        multiplier = multiple_assy_check(parent, BOM_df)
+        print("Final multiplier: {}\n\n".format(multiplier))
     return
 
 if __name__ == '__main__':
