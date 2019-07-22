@@ -110,7 +110,7 @@ def scan_for_dates(creds, service, tab):
     sheet = service.spreadsheets()
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'EXTENDED_QTY')
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 'EXTENDED_QTY')
     
     row_list = []
     try:
@@ -132,7 +132,7 @@ def scan_for_dates(creds, service, tab):
 
         for row in values:
             try:
-                if row[7] == '1':
+                if row[7] == '5':
                     # print(row)
                     row.insert(0, parent)
                     row.insert(0, engineer)
@@ -143,7 +143,7 @@ def scan_for_dates(creds, service, tab):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','','','',''])
+    row_list.append(['','','','','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
     return df
 
@@ -187,13 +187,14 @@ def order_quantity(BOM_df, order_df):
             part_no = order_df["PARTNO"].iloc[i]
             print("root part number: {}".format(part_no))
             parent = order_df["PARENT"].iloc[i]
-            single_quantity = int(order_df["QTY."].iloc[i])
+            single_quantity = order_df["QTY."].iloc[i]
             # print(part_no, single_quantity)
 
             multiplier = multiple_assy_check(parent, BOM_df)
             print("Final multiplier: {}\n\n".format(multiplier))
 
-            order_df["EXTENDED_QTY"].iloc[i] = single_quantity * multiplier
+            order_df["MULTIPLIER"].iloc[i] = int(multiplier)
+            order_df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier
         except ValueError:
             print("single child assembly qty is not a number: {}".format(single_quantity))
     return order_df
@@ -223,11 +224,13 @@ if __name__ == '__main__':
 
     weekly_BOM_df = pd.concat(order_df)
 
+    # print("adding nan")
     weekly_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
+    # print("cleaning up df")
     weekly_BOM_df.dropna(subset=['PARTNO'], inplace=True)
 
-    weekly_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df)
+    order_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df)
     # print(weekly_BOM_df)
 
     stats_file_name = "Results.csv" 
-    weekly_BOM_df.to_csv(stats_file_name, sep=',', index=False)
+    order_BOM_df.to_csv(stats_file_name, sep=',', index=False)
