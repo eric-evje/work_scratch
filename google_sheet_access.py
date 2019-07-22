@@ -10,12 +10,19 @@ from googleapiclient.errors import HttpError
 import pandas as pd
 import numpy as np
 
+import argparse
+
+# from df2gspread import df2gspread as d2g
+
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '18mWf_41NHGjO9si4ZmuvqOpLuF-8BuHsBgv4AzrQmCY'
 SAMPLE_RANGE_NAME = "'SheetNames'!A:B"
+
+WRITE_SPREADSHEET_ID = '1AVeF1YtaeyRXsPcPCU7_nw0FFy_RgoMntdLSfw40L4I'
+WRITE_RANGE = ["'1_wk'!A1", "'2_wk'!A:Z", "'3_wk'!A:Z", "'4_wk'!A:Z", "'5_wk'!A:Z", "'6_wk'!A:Z","'7_wk'!A:Z", "'8_wk'!A:Z"]
 
 def credentials():
     """Shows basic usage of the Sheets API.
@@ -103,14 +110,15 @@ def clean_up_frame(df):
     # print(df)
     return df
 
-def scan_for_dates(creds, service, tab):
+def scan_for_dates(creds, service, tab, lead_time):
     parent = "RC-ASY" + tab
     tab_name = "'" + tab + "'!A:K"
     # Call the Sheets API
     sheet = service.spreadsheets()
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 'EXTENDED_QTY')
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
     
     row_list = []
     try:
@@ -132,7 +140,7 @@ def scan_for_dates(creds, service, tab):
 
         for row in values:
             try:
-                if row[7] == '5':
+                if row[7] == lead_time:
                     # print(row)
                     row.insert(0, parent)
                     row.insert(0, engineer)
@@ -143,7 +151,7 @@ def scan_for_dates(creds, service, tab):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','','','','',''])
+    row_list.append(['','','','','','','','','','','','','','','','',''])
     df = pd.DataFrame(row_list, columns=cols)    
     return df
 
@@ -180,7 +188,7 @@ def multiple_assy_check(parent, df, add_parts=1):
     #     print("going right to finally")
     #     return add_parts
 
-def order_quantity(BOM_df, order_df):
+def order_quantity(BOM_df, order_df, builds):
     for i in range(0, len(order_df["PARTNO"])):
         try:
             # print(i)
@@ -194,14 +202,50 @@ def order_quantity(BOM_df, order_df):
             print("Final multiplier: {}\n\n".format(multiplier))
 
             order_df["MULTIPLIER"].iloc[i] = int(multiplier)
-            order_df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier
+            order_df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier * builds
         except ValueError:
             print("single child assembly qty is not a number: {}".format(single_quantity))
     return order_df
 
+def write_to_sheet(df, sheet_name):
+    request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range=sheet_name)
+    response = request.execute()
+
+    values = df
+
+    data = [
+        {
+            'range': sheet_name,
+            'values': values
+        },
+        # Additional ranges to update ...
+    ]
+    body = {
+        'valueInputOption': "RAW",
+        'data': data
+    }
+    result = service.spreadsheets().values().batchUpdate(
+        spreadsheetId=WRITE_SPREADSHEET_ID, body=body).execute()
+    print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
+    # d2g.upload(df, WRITE_SPREADSHEET_ID, sheet_name)
+    # print("upload complete")
+
+
 if __name__ == '__main__':
+
+    # Argument parser
+    parser = argparse.ArgumentParser(
+        description='This script extracts items and order quantities from the RC2 Master BOM.')
+    parser.add_argument('lead_time', type=str,
+                        help='The number for the week lead time to search the BOM for.')
+    parser.add_argument('builds', type=int,
+                        help='Number of builds to order for')
+    args = parser.parse_args()
+
+    # Aquire Oauth credentials from google
     creds, service = credentials()
 
+    # Retrieve the tab names from the BOM spreadsheet
     tab_names = get_sheet_names(creds, service)
 
     full_BOM = []
@@ -209,28 +253,31 @@ if __name__ == '__main__':
         full_BOM.append(scan_for_line_items(creds, service, tab))
 
     full_BOM_df = pd.concat(full_BOM)
-    # print(order_df)
-    
     full_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     full_BOM_df.dropna(subset=['PARTNO'], inplace=True)
-
     BOM_file_name = "BOM.csv" 
     full_BOM_df.to_csv(BOM_file_name, sep=',', index=False)
-    # sys.open(BOM_file_name)
 
     order_df = []
     for tab in tab_names:
-        order_df.append(scan_for_dates(creds, service, tab))
+        order_df.append(scan_for_dates(creds, service, tab, args.lead_time))
 
     weekly_BOM_df = pd.concat(order_df)
-
-    # print("adding nan")
     weekly_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
-    # print("cleaning up df")
     weekly_BOM_df.dropna(subset=['PARTNO'], inplace=True)
 
-    order_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df)
-    # print(weekly_BOM_df)
+    order_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df, args.builds)
 
     stats_file_name = "Results.csv" 
     order_BOM_df.to_csv(stats_file_name, sep=',', index=False)
+
+    order_BOM_df = order_BOM_df.reset_index()
+    del order_BOM_df["index"]
+    order_list = order_BOM_df.values.tolist()
+    order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+    print(order_list)
+
+    write_to_sheet(order_list, WRITE_RANGE[int(args.lead_time) - 1])
