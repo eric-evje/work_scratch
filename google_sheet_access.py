@@ -5,29 +5,24 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.errors import HttpError
-# import sys
 
 import pandas as pd
 import numpy as np
 
 import argparse
 
-# from df2gspread import df2gspread as d2g
-
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID = '18mWf_41NHGjO9si4ZmuvqOpLuF-8BuHsBgv4AzrQmCY'
-SAMPLE_RANGE_NAME = "'SheetNames'!A:B"
+SPREADSHEET_ID = '18mWf_41NHGjO9si4ZmuvqOpLuF-8BuHsBgv4AzrQmCY'
 
 WRITE_SPREADSHEET_ID = '1AVeF1YtaeyRXsPcPCU7_nw0FFy_RgoMntdLSfw40L4I'
-WRITE_RANGE = ["'1_wk'!A1", "'2_wk'!A:Z", "'3_wk'!A:Z", "'4_wk'!A:Z", "'5_wk'!A:Z", "'6_wk'!A:Z","'7_wk'!A:Z", "'8_wk'!A:Z"]
+WRITE_RANGE = ["'1_wk'!A1", "'2_wk'!A:Z", "'3_wk'!A:Z", "'4_wk'!A:Z", 
+            "'5_wk'!A:Z", "'6_wk'!A:Z","'7_wk'!A:Z", "'8_wk'!A:Z"]
 
 def credentials():
-    """Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
-    """
+    # Gets credentials from google for accessing read/write access to sheets
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -53,24 +48,27 @@ def credentials():
 
 def get_sheet_names(creds, service):
     # Call the Sheets API
+    # Get the sheet names from the SheetNames sheet
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
                                 range="'SheetNames'!A:B").execute()
     values = result.get('values', [])
     tab_names = []
     for i in range(len(values)):
         tab_names.append(values[i][0])
-        
-    # print(tab_names)
 
     return tab_names
 
 def scan_for_line_items(creds, service, tab):
+    # Scans each sheet of the master BOM and arranges into dataframe
     parent = "RC-ASY" + tab
     tab_name = "'" + tab + "'!A:K"
     # Call the Sheets API
     sheet = service.spreadsheets()
-    cols = ('PARENT', 'PARTNO', 'QTY')
+    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
 
     if tab[0] != "-":
         df = pd.DataFrame(columns=cols)
@@ -78,51 +76,7 @@ def scan_for_line_items(creds, service, tab):
 
     row_list = []
     try:
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                    range=tab_name).execute()
-        values = result.get('values', [])
-        for row in values:
-            try:
-                row.insert(0, parent)
-                row_list.append([row[0], row[1], row[3]])
-            except(IndexError):
-                # print("index error")
-                pass
-    except HttpError as e:
-        print("Couldn't find sheet{}".format(tab))
-        pass
-    row_list.append(['','',''])
-    df = pd.DataFrame(row_list, columns=cols)
-    df = clean_up_frame(df)
-    # print(df)   
-    return df
-
-def clean_up_frame(df):
-    # print(df)
-    BOM_start = 0
-    for index in range(0, int(len(df))):
-        print("value at index: {}".format(df["PARTNO"].iloc[index]))
-        if df["PARTNO"].iloc[index] == "PARTNO":
-            BOM_start = index + 1
-            break 
-    df = df[BOM_start:]
-    # print("fixed df")
-    # print(df)
-    return df
-
-def scan_for_dates(creds, service, tab, lead_time):
-    parent = "RC-ASY" + tab
-    tab_name = "'" + tab + "'!A:K"
-    # Call the Sheets API
-    sheet = service.spreadsheets()
-    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
-        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
-    
-    row_list = []
-    try:
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
                                     range=tab_name).execute()
         values = result.get('values', [])
         engineer = "unknown"
@@ -135,18 +89,66 @@ def scan_for_dates(creds, service, tab, lead_time):
                 if engineer != "unknown":
                     break
             except(IndexError):
-                # print("index error")
+                pass
+
+        for row in values:
+            try:
+                row.insert(0, parent)
+                row.insert(0, engineer)
+                row_list.append(row)
+            except(IndexError):
+                pass
+    except HttpError as e:
+        print("Couldn't find sheet{}".format(tab))
+        pass
+    row_list.append(['','','','','','','','','','','','','','','','',''])
+    df = pd.DataFrame(row_list, columns=cols)
+    df = clean_up_frame(df)  
+    return df
+
+def clean_up_frame(df):
+    BOM_start = 0
+    for index in range(0, int(len(df))):
+        if df["PARTNO"].iloc[index] == "PARTNO":
+            BOM_start = index + 1
+            break 
+    df = df[BOM_start:]
+    return df
+
+def scan_for_dates(creds, service, tab, lead_time):
+    parent = "RC-ASY" + tab
+    tab_name = "'" + tab + "'!A:K"
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+    
+    row_list = []
+    try:
+        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+                                    range=tab_name).execute()
+        values = result.get('values', [])
+        engineer = "unknown"
+        for row in values:
+            try:
+                for cell in row:
+                    if cell == "Responsible Engineer":
+                        engineer = row[row.index(cell) + 1]
+                        break
+                if engineer != "unknown":
+                    break
+            except(IndexError):
                 pass
 
         for row in values:
             try:
                 if row[7] == lead_time:
-                    # print(row)
                     row.insert(0, parent)
                     row.insert(0, engineer)
                     row_list.append(row)
             except(IndexError):
-                # print("index error")
                 pass
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
@@ -159,21 +161,15 @@ def multiple_assy_check(parent, df, add_parts=1):
     try:
         final_multiplier = 0
         df_parent_as_part = df.loc[df["PARTNO"] == parent]
-        print("dataframe: \n{}".format(df_parent_as_part))
-        # print("Boolean: {}".format(df_parent_as_part.empty()))
         empty = df_parent_as_part.empty
         if  empty != True:
             for i in range(0, len(df_parent_as_part)):
                 add_parts *= int(df_parent_as_part["QTY"].iloc[i])
-                print("add_parts: {}".format(add_parts))
                 new_parent = df_parent_as_part["PARENT"].iloc[i]
-                print("new_parent: {}".format(new_parent))
                 add_parts *= multiple_assy_check(new_parent, df)
-                print("add_parts after multiplication: {}".format(add_parts))
                 final_multiplier += add_parts
             return final_multiplier
         else:
-            # print("logic loop doesn't work")
             return 1
     except KeyError:
         print("No match found")
@@ -184,22 +180,16 @@ def multiple_assy_check(parent, df, add_parts=1):
     except ValueError:
         print("not a number")
         return final_multiplier
-    # finally:
-    #     print("going right to finally")
-    #     return add_parts
 
 def order_quantity(BOM_df, order_df, builds):
     for i in range(0, len(order_df["PARTNO"])):
         try:
-            # print(i)
             part_no = order_df["PARTNO"].iloc[i]
-            print("root part number: {}".format(part_no))
+
             parent = order_df["PARENT"].iloc[i]
-            single_quantity = order_df["QTY."].iloc[i]
-            # print(part_no, single_quantity)
+            single_quantity = order_df["QTY"].iloc[i]
 
             multiplier = multiple_assy_check(parent, BOM_df)
-            print("Final multiplier: {}\n\n".format(multiplier))
 
             order_df["MULTIPLIER"].iloc[i] = int(multiplier)
             order_df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier * builds
@@ -210,9 +200,7 @@ def order_quantity(BOM_df, order_df, builds):
 def write_to_sheet(df, sheet_name):
     request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range=sheet_name)
     response = request.execute()
-
     values = df
-
     data = [
         {
             'range': sheet_name,
@@ -227,9 +215,6 @@ def write_to_sheet(df, sheet_name):
     result = service.spreadsheets().values().batchUpdate(
         spreadsheetId=WRITE_SPREADSHEET_ID, body=body).execute()
     print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
-    # d2g.upload(df, WRITE_SPREADSHEET_ID, sheet_name)
-    # print("upload complete")
-
 
 if __name__ == '__main__':
 
@@ -240,6 +225,10 @@ if __name__ == '__main__':
                         help='The number for the week lead time to search the BOM for.')
     parser.add_argument('builds', type=int,
                         help='Number of builds to order for')
+    parser.add_argument('update_full', type=int,
+                        help='Number of builds to order for')
+    parser.add_argument('update_partial', type=int,
+                        help='Number of builds to order for')
     args = parser.parse_args()
 
     # Aquire Oauth credentials from google
@@ -248,6 +237,7 @@ if __name__ == '__main__':
     # Retrieve the tab names from the BOM spreadsheet
     tab_names = get_sheet_names(creds, service)
 
+    # Retrieve the full BOM from the spreadsheets
     full_BOM = []
     for tab in tab_names:
         full_BOM.append(scan_for_line_items(creds, service, tab))
@@ -255,9 +245,25 @@ if __name__ == '__main__':
     full_BOM_df = pd.concat(full_BOM)
     full_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     full_BOM_df.dropna(subset=['PARTNO'], inplace=True)
+
+    order_BOM_df = order_quantity(full_BOM_df, full_BOM_df, args.builds)
+
     BOM_file_name = "BOM.csv" 
     full_BOM_df.to_csv(BOM_file_name, sep=',', index=False)
 
+    full_BOM_df = full_BOM_df.reset_index()
+    del full_BOM_df["index"]
+    full_order_list = full_BOM_df.values.tolist()
+    full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+
+    if args.update_full == 1:
+        print("updating full BOM sheet")
+        write_to_sheet(full_order_list, "'Full'!A1")
+
+    # Retrieve only the part numbers for the lead time desired
     order_df = []
     for tab in tab_names:
         order_df.append(scan_for_dates(creds, service, tab, args.lead_time))
@@ -274,10 +280,15 @@ if __name__ == '__main__':
     order_BOM_df = order_BOM_df.reset_index()
     del order_BOM_df["index"]
     order_list = order_BOM_df.values.tolist()
-    order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY.', 'VENDOR', 
+    order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
-    print(order_list)
 
-    write_to_sheet(order_list, WRITE_RANGE[int(args.lead_time) - 1])
+    if args.update_partial == 1:
+        print("updating partial sheet")
+        write_to_sheet(order_list, WRITE_RANGE[int(args.lead_time) - 1])
+
+
+
+
