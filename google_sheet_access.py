@@ -71,6 +71,7 @@ def scan_for_line_items(creds, service, tab):
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
 
     if tab[0] != "-":
+        print("Did not attempt to parse {}".format(tab_name))
         df = pd.DataFrame(columns=cols)
         return df
 
@@ -226,9 +227,9 @@ if __name__ == '__main__':
     parser.add_argument('builds', type=int,
                         help='Number of builds to order for')
     parser.add_argument('update_full', type=int,
-                        help='Number of builds to order for')
+                        help='Whether (1) or not (0) to update full bom sheet')
     parser.add_argument('update_partial', type=int,
-                        help='Number of builds to order for')
+                        help='Whether (1) or not (0) to update weekly bom sheet')
     args = parser.parse_args()
 
     # Aquire Oauth credentials from google
