@@ -1,3 +1,7 @@
+# Quick function to generate a list of unique 5 place hex value for the part number index
+# If further ref numbers are required, please run the program. Do not change the seed
+# Find the ending value of the current part number index list, and append further values
+
 import random
 import csv
 
