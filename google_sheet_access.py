@@ -18,8 +18,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '18mWf_41NHGjO9si4ZmuvqOpLuF-8BuHsBgv4AzrQmCY'
 
 WRITE_SPREADSHEET_ID = '1AVeF1YtaeyRXsPcPCU7_nw0FFy_RgoMntdLSfw40L4I'
-WRITE_RANGE = ["'1_wk'!A1", "'2_wk'!A:Z", "'3_wk'!A:Z", "'4_wk'!A:Z", 
-            "'5_wk'!A:Z", "'6_wk'!A:Z","'7_wk'!A:Z", "'8_wk'!A:Z"]
+WRITE_RANGE = ["'1_wk'!A1:Z999", "'2_wk'!A1:Z999", "'3_wk'!A1:Z999", "'4_wk'!A1:Z999", 
+            "'5_wk'!A1:Z999", "'6_wk'!A1:Z999","'7_wk'!A1:Z999", "'8_wk'!A1:Z999"]
 
 def credentials():
     # Gets credentials from google for accessing read/write access to sheets
@@ -188,6 +188,7 @@ def order_quantity(BOM_df, order_df, builds):
             part_no = order_df["PARTNO"].iloc[i]
 
             parent = order_df["PARENT"].iloc[i]
+            # print (part_no, parent)
             single_quantity = order_df["QTY"].iloc[i]
 
             multiplier = multiple_assy_check(parent, BOM_df)
@@ -259,10 +260,11 @@ if __name__ == '__main__':
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+    # full_order_list.insert(0, ['Last updated', ])
 
     if args.update_full == 1:
         print("updating full BOM sheet")
-        write_to_sheet(full_order_list, "'Full'!A1")
+        write_to_sheet(full_order_list, "'Full'!A1:Z999")
 
     # Retrieve only the part numbers for the lead time desired
     order_df = []
