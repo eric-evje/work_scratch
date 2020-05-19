@@ -186,6 +186,7 @@ def order_quantity(BOM_df, order_df, builds):
     for i in range(0, len(order_df["PARTNO"])):
         try:
             part_no = order_df["PARTNO"].iloc[i]
+            # print("part number: {}".format(part_no))
 
             parent = order_df["PARENT"].iloc[i]
             single_quantity = order_df["QTY"].iloc[i]
