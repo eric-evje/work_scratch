@@ -8,6 +8,7 @@ from googleapiclient.errors import HttpError
 
 import pandas as pd
 import numpy as np
+import time
 
 import argparse
 
@@ -169,9 +170,6 @@ def multiple_assy_check(parent, df, add_parts=0):
                 add_parts += int(df_parent_as_part["QTY"].iloc[i])
                 new_parent = df_parent_as_part["PARENT"].iloc[i]
                 add_parts *= multiple_assy_check(new_parent, df)
-                # final_multiplier += add_parts
-                if parent == "RC-ASY-00177":
-                    print(add_parts, final_multiplier)
             return add_parts
         else:
             return 1
@@ -203,8 +201,11 @@ def order_quantity(BOM_df, order_df, builds):
     return order_df
 
 def write_to_sheet(df, sheet_name):
-    request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range=sheet_name)
+    request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range='Full!A:Z', body = {})
     response = request.execute()
+    print("Cleared range: {0}".format(response.get('clearedRange')))
+
+
     values = df
     data = [
         {
@@ -263,6 +264,8 @@ if __name__ == '__main__':
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+    update_time = time.strftime("%c")
+    full_order_list.insert(0, ["Last updated: " + update_time])
 
     if args.update_full == 1:
         print("updating full BOM sheet")
