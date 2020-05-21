@@ -121,7 +121,7 @@ def pull_old_order_list(creds, service):
     try:
         result = sheet.values().get(spreadsheetId=WRITE_SPREADSHEET_ID,
                                     range=tab).execute()
-        print(results)
+        # print(result)
         values = result.get('values', [])
 
         for row in values:
@@ -212,22 +212,22 @@ def multiple_assy_check(parent, df, add_parts=0):
         print("not a number")
         return add_parts
 
-def order_quantity(BOM_df, order_df, builds):
-    for i in range(0, len(order_df["PARTNO"])):
+def order_quantity(df, builds):
+    for i in range(0, len(df["PARTNO"])):
         try:
-            part_no = order_df["PARTNO"].iloc[i]
+            part_no = df["PARTNO"].iloc[i]
             # print("part number: {}".format(part_no))
 
-            parent = order_df["PARENT"].iloc[i]
-            single_quantity = order_df["QTY"].iloc[i]
+            parent = df["PARENT"].iloc[i]
+            single_quantity = df["QTY"].iloc[i]
 
-            multiplier = multiple_assy_check(parent, BOM_df)
+            multiplier = multiple_assy_check(parent, df)
 
-            order_df["MULTIPLIER"].iloc[i] = int(multiplier)
-            order_df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier * builds
+            df["MULTIPLIER"].iloc[i] = int(multiplier)
+            df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier * builds
         except ValueError:
             print("single child assembly qty is not a number: {}".format(single_quantity))
-    return order_df
+    return df
 
 def write_to_sheet(df, sheet_name):
     request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range='Full!A:Z', body = {})
@@ -281,14 +281,14 @@ if __name__ == '__main__':
     full_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     full_BOM_df.dropna(subset=['PARTNO'], inplace=True)
 
-    order_BOM_df = order_quantity(full_BOM_df, full_BOM_df, args.builds)
+    order_df = order_quantity(full_BOM_df, args.builds)
 
     BOM_file_name = "BOM.csv" 
-    full_BOM_df.to_csv(BOM_file_name, sep=',', index=False)
+    order_df.to_csv(BOM_file_name, sep=',', index=False)
 
-    full_BOM_df = full_BOM_df.reset_index()
-    del full_BOM_df["index"]
-    full_order_list = full_BOM_df.values.tolist()
+    order_df = order_df.reset_index()
+    del order_df["index"]
+    full_order_list = order_df.values.tolist()
     full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
@@ -298,6 +298,21 @@ if __name__ == '__main__':
 
     # Retrieve old order list
     old_order_list_df = pull_old_order_list(creds, service)
+
+    #Check updated order list against old order list
+    # for row in order_df:
+    #     if part number and assembly number are equal across the two:
+    #         if everything_but_ordered_colums ==:
+    #             keep row from old
+    #         else if differences:
+    #             ask user what to do
+    #         else if row != old:
+    #             if ordered and received are blank:
+    #                 replace with new one
+    #             else:
+    #                 ask user what to do
+    #     if part number and assembly number do not equal anything in the old list:
+    #         add row from new
 
     if args.update_full == 1:
         print("updating full BOM sheet")
