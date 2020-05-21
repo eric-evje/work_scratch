@@ -108,6 +108,35 @@ def scan_for_line_items(creds, service, tab):
     df = clean_up_frame(df)  
     return df
 
+def pull_old_order_list(creds, service):
+    # Call the Sheets API
+    tab = 'Full!A3:L'
+    sheet = service.spreadsheets()
+    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+
+    row_list = []
+    try:
+        result = sheet.values().get(spreadsheetId=WRITE_SPREADSHEET_ID,
+                                    range=tab).execute()
+        print(results)
+        values = result.get('values', [])
+
+        for row in values:
+            try:
+                row_list.append(row)
+            except(IndexError):
+                pass
+    except HttpError as e:
+        print("Couldn't find sheet{}".format(tab))
+        pass
+    row_list.append(['','','','','','','','','','','','','','','','','',''])
+    df = pd.DataFrame(row_list, columns=cols)
+    df = clean_up_frame(df)  
+    return df
+
 def clean_up_frame(df):
     BOM_start = 0
     for index in range(0, int(len(df))):
@@ -266,6 +295,9 @@ if __name__ == '__main__':
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
     update_time = time.strftime("%c")
     full_order_list.insert(0, ["Last updated: " + update_time])
+
+    # Retrieve old order list
+    old_order_list_df = pull_old_order_list(creds, service)
 
     if args.update_full == 1:
         print("updating full BOM sheet")
