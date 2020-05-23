@@ -110,7 +110,7 @@ def scan_for_line_items(creds, service, tab):
 
 def pull_old_order_list(creds, service):
     # Call the Sheets API
-    tab = 'Full!A3:L'
+    tab = 'Full!A3:R'
     sheet = service.spreadsheets()
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
@@ -146,47 +146,47 @@ def clean_up_frame(df):
     df = df[BOM_start:]
     return df
 
-def scan_for_dates(creds, service, tab, lead_time):
-    parent = "RC-ASY" + tab
-    tab_name = "'" + tab + "'!A:L"
-    # Call the Sheets API
-    sheet = service.spreadsheets()
-    cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
-        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+# def scan_for_dates(creds, service, tab, lead_time):
+#     parent = "RC-ASY" + tab
+#     tab_name = "'" + tab + "'!A:L"
+#     # Call the Sheets API
+#     sheet = service.spreadsheets()
+#     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
+#         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+#         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+#         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
     
-    row_list = []
-    try:
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-                                    range=tab_name).execute()
-        values = result.get('values', [])
-        engineer = "unknown"
-        for row in values:
-            try:
-                for cell in row:
-                    if cell == "RESPONSIBLE ENGINEER":
-                        engineer = row[row.index(cell) + 1]
-                        break
-                if engineer != "unknown":
-                    break
-            except(IndexError):
-                pass
+#     row_list = []
+#     try:
+#         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
+#                                     range=tab_name).execute()
+#         values = result.get('values', [])
+#         engineer = "unknown"
+#         for row in values:
+#             try:
+#                 for cell in row:
+#                     if cell == "RESPONSIBLE ENGINEER":
+#                         engineer = row[row.index(cell) + 1]
+#                         break
+#                 if engineer != "unknown":
+#                     break
+#             except(IndexError):
+#                 pass
 
-        for row in values:
-            try:
-                if row[7] == lead_time:
-                    row.insert(0, parent)
-                    row.insert(0, engineer)
-                    row_list.append(row)
-            except(IndexError):
-                pass
-    except HttpError as e:
-        print("Couldn't find sheet{}".format(tab))
-        pass
-    row_list.append(['','','','','','','','','','','','','','','','','',''])
-    df = pd.DataFrame(row_list, columns=cols)    
-    return df
+#         for row in values:
+#             try:
+#                 if row[7] == lead_time:
+#                     row.insert(0, parent)
+#                     row.insert(0, engineer)
+#                     row_list.append(row)
+#             except(IndexError):
+#                 pass
+#     except HttpError as e:
+#         print("Couldn't find sheet{}".format(tab))
+#         pass
+#     row_list.append(['','','','','','','','','','','','','','','','','',''])
+#     df = pd.DataFrame(row_list, columns=cols)    
+#     return df
 
 def multiple_assy_check(parent, df, add_parts=0):
     try:
@@ -229,6 +229,22 @@ def order_quantity(df, builds):
             print("single child assembly qty is not a number: {}".format(single_quantity))
     return df
 
+def merge_lists(new, old):
+
+    new_drop_cols = ['QTY ORDERED', 'QTY RECEIVED']
+    new = new.drop(columns=new_drop_cols)
+
+    old_drop_cols = cols = ['ENGINEER', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
+        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+        'EXTENDED_QTY']
+    old = old.drop(columns=old_drop_cols)
+
+    new = new.merge(old, on=["PARENT", "PARTNO"], how='left')
+    new.replace(np.nan, '', inplace=True, regex=True)
+
+    return new
+
 def write_to_sheet(df, sheet_name):
     request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range='Full!A:Z', body = {})
     response = request.execute()
@@ -262,8 +278,6 @@ if __name__ == '__main__':
                         help='Number of builds to order for')
     parser.add_argument('update_full', type=int,
                         help='Whether (1) or not (0) to update full bom sheet')
-    parser.add_argument('update_partial', type=int,
-                        help='Whether (1) or not (0) to update weekly bom sheet')
     args = parser.parse_args()
 
     # Aquire Oauth credentials from google
@@ -283,66 +297,31 @@ if __name__ == '__main__':
 
     order_df = order_quantity(full_BOM_df, args.builds)
 
-    BOM_file_name = "BOM.csv" 
-    order_df.to_csv(BOM_file_name, sep=',', index=False)
+    BOM_file_name = "BOM.csv"
+    order_df.to_csv(BOM_file_name) 
 
     order_df = order_df.reset_index()
-    del order_df["index"]
-    full_order_list = order_df.values.tolist()
+
+    # Retrieve old order list
+    old_order_list_df = pull_old_order_list(creds, service)
+    old_order_list_df.to_csv("old.csv")
+
+    updated_df = merge_lists(order_df, old_order_list_df)
+    updated_df.to_csv("results.csv")
+    del updated_df["index"]
+    full_order_list = updated_df.values.tolist()
     full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+    updated_df.to_csv("results.csv", index=False)
     update_time = time.strftime("%c")
     full_order_list.insert(0, ["Last updated: " + update_time])
-
-    # Retrieve old order list
-    old_order_list_df = pull_old_order_list(creds, service)
-
-    #Check updated order list against old order list
-    # for row in order_df:
-    #     if part number and assembly number are equal across the two:
-    #         if everything_but_ordered_colums ==:
-    #             keep row from old
-    #         else if differences:
-    #             ask user what to do
-    #         else if row != old:
-    #             if ordered and received are blank:
-    #                 replace with new one
-    #             else:
-    #                 ask user what to do
-    #     if part number and assembly number do not equal anything in the old list:
-    #         add row from new
+    # print(full_order_list)
 
     if args.update_full == 1:
         print("updating full BOM sheet")
         write_to_sheet(full_order_list, "'Full'!A1")
-
-    # Retrieve only the part numbers for the lead time desired
-    # order_df = []
-    # for tab in tab_names:
-    #     order_df.append(scan_for_dates(creds, service, tab, args.lead_time))
-
-    # weekly_BOM_df = pd.concat(order_df)
-    # weekly_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
-    # weekly_BOM_df.dropna(subset=['PARTNO'], inplace=True)
-
-    # order_BOM_df = order_quantity(full_BOM_df, weekly_BOM_df, args.builds)
-
-    # stats_file_name = "Results.csv" 
-    # order_BOM_df.to_csv(stats_file_name, sep=',', index=False)
-
-    # order_BOM_df = order_BOM_df.reset_index()
-    # del order_BOM_df["index"]
-    # order_list = order_BOM_df.values.tolist()
-    # order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'QTY', 'VENDOR', 
-    #     'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-    #     'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-    #     'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
-
-    # if args.update_partial == 1:
-    #     print("updating partial sheet")
-    #     write_to_sheet(order_list, WRITE_RANGE[int(args.lead_time) - 1])
 
 
 
