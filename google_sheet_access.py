@@ -66,10 +66,15 @@ def scan_for_line_items(creds, service, tab):
     tab_name = "'" + tab + "'!A:L"
     # Call the Sheets API
     sheet = service.spreadsheets()
+    # cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
+    #     'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+    #     'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+    #     'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
-        'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-        'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+    'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
+    'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
+    'EXTENDED_QTY')
 
     if tab[0] != "-":
         print("Did not attempt to parse {}".format(tab_name))
@@ -103,19 +108,19 @@ def scan_for_line_items(creds, service, tab):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','','','','','','','',''])
+    row_list.append(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''])
     df = pd.DataFrame(row_list, columns=cols)
     df = clean_up_frame(df)  
     return df
 
 def pull_old_order_list(creds, service):
     # Call the Sheets API
-    tab = 'Full!A3:R'
+    tab = 'Full!A3:V'
     sheet = service.spreadsheets()
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'NOTES')
 
     row_list = []
     try:
@@ -132,7 +137,7 @@ def pull_old_order_list(creds, service):
     except HttpError as e:
         print("Couldn't find sheet{}".format(tab))
         pass
-    row_list.append(['','','','','','','','','','','','','','','','','',''])
+    row_list.append(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''])
     df = pd.DataFrame(row_list, columns=cols)
     df = clean_up_frame(df)  
     return df
@@ -145,48 +150,6 @@ def clean_up_frame(df):
             break 
     df = df[BOM_start:]
     return df
-
-# def scan_for_dates(creds, service, tab, lead_time):
-#     parent = "RC-ASY" + tab
-#     tab_name = "'" + tab + "'!A:L"
-#     # Call the Sheets API
-#     sheet = service.spreadsheets()
-#     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
-#         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-#         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-#         'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
-    
-#     row_list = []
-#     try:
-#         result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
-#                                     range=tab_name).execute()
-#         values = result.get('values', [])
-#         engineer = "unknown"
-#         for row in values:
-#             try:
-#                 for cell in row:
-#                     if cell == "RESPONSIBLE ENGINEER":
-#                         engineer = row[row.index(cell) + 1]
-#                         break
-#                 if engineer != "unknown":
-#                     break
-#             except(IndexError):
-#                 pass
-
-#         for row in values:
-#             try:
-#                 if row[7] == lead_time:
-#                     row.insert(0, parent)
-#                     row.insert(0, engineer)
-#                     row_list.append(row)
-#             except(IndexError):
-#                 pass
-#     except HttpError as e:
-#         print("Couldn't find sheet{}".format(tab))
-#         pass
-#     row_list.append(['','','','','','','','','','','','','','','','','',''])
-#     df = pd.DataFrame(row_list, columns=cols)    
-#     return df
 
 def multiple_assy_check(parent, df, add_parts=0):
     try:
@@ -226,21 +189,22 @@ def order_quantity(df, builds):
             df["MULTIPLIER"].iloc[i] = int(multiplier)
             df["EXTENDED_QTY"].iloc[i] = int(single_quantity) * multiplier * builds
         except ValueError:
+            print(df.iloc[i])
             print("single child assembly qty is not a number: {}".format(single_quantity))
     return df
 
 def merge_lists(new, old):
 
-    new_drop_cols = ['QTY ORDERED', 'QTY RECEIVED']
-    new = new.drop(columns=new_drop_cols)
+    # new_drop_cols = ['QTY ORDERED', 'QTY RECEIVED']
+    # new = new.drop(columns=new_drop_cols)
 
-    old_drop_cols = cols = ['ENGINEER', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
+    old_drop_cols = cols = ['ENGINEER', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY']
     old = old.drop(columns=old_drop_cols)
 
-    new = new.merge(old, on=["PARENT", "PARTNO"], how='left')
+    new = new.merge(old, on=["PARENT", "PARTNO", "DESCRIPTION"], how='left')
     new.replace(np.nan, '', inplace=True, regex=True)
 
     return new
@@ -313,7 +277,7 @@ if __name__ == '__main__':
     full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED'])
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'NOTES'])
     updated_df.to_csv("results.csv", index=False)
     update_time = time.strftime("%c")
     full_order_list.insert(0, ["Last updated: " + update_time])
