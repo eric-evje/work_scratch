@@ -93,19 +93,26 @@ if __name__ == "__main__":
             filename = file
             stream = open(file, 'r')
             input_map = yaml.load(stream)
-            for j in range(1, 13):
+            # print(input_map)
+            for j in range(1, 21):
                 try:
                     masses = []
                     pressures = []
-                    reagent = input_map["reagents"]["valve_%d"%j]["short_name"]
+                    # reagent = input_map["reagents"]["valve_%d"%j]["short_name"]
+                    reagent = "valve"
                     valve = j
-                    dis_time = (float(input_map['reagents']['valve_%d' % j]['dispense_ms']))
-                    for i in range(1, 4):
-                        masses.append(float(input_map['reagents']['valve_%d' % j][i]['grams']))
-                        pressures.append(float(input_map['reagents']['valve_%d' % j][i]['mean_static_pressure']))
-                    df.append(cal_statistics(masses, pressures, dis_time, filename, reagent, valve))
+                    # dis_time = (float(input_map['reagents']['valve_%d' % j]['dispenses']))
+                    for i in range(0, 3):
+                        print(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
+                        masses.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
+                        pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_static_pressure']))
+                    print(masses)
+                    print(pressures)
+                    df.append(cal_statistics(masses, pressures, 2000, filename, reagent, valve))
                 except KeyError:
                     print("couldn't find valve %d in file %s" % (j, file))
+                except IndexError:
+                    print("list index out of range")
 
     df_output = pd.concat(df)
     filename = "results.csv"
