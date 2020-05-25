@@ -242,11 +242,11 @@ def write_to_sheet(df, sheet_name):
 ########################## Main function ######################################
 if __name__ == '__main__':
 
+    print("Did you remember to update the sheetnames list?")
+
     # Argument parser
     parser = argparse.ArgumentParser(
         description='This script extracts items and order quantities from the RC2 Master BOM.')
-    parser.add_argument('lead_time', type=str,
-                        help='The number for the week lead time to search the BOM for.')
     parser.add_argument('builds', type=int,
                         help='Number of builds to order for')
     parser.add_argument('update_full', type=int,
@@ -290,7 +290,6 @@ if __name__ == '__main__':
     # If directed, delete any assembly that is in the PARTNO column to clean up the ordering sheet 
     if args.deleted_assy_as_parts == 1:
         m = ~updated_df['PARTNO'].str.contains('RC-ASY-\d+')
-        print(m)
         updated_df = updated_df[m]
 
     # Save for posterity and debugging
@@ -311,6 +310,8 @@ if __name__ == '__main__':
     if args.update_full == 1:
         print("updating full BOM sheet")
         write_to_sheet(full_order_list, "'Full'!A1")
+
+    print("Did you remember to update the sheetnames list?")
 
 
 
