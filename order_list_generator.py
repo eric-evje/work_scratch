@@ -1,3 +1,9 @@
+'''
+Copyright (c) ReadCoor, Inc. 2019. All Rights Reserved.
+
+Order list generation script for hardware engineering build tracking
+'''
+
 from __future__ import print_function
 import pickle
 import os.path
@@ -66,16 +72,14 @@ def scan_for_line_items(creds, service, tab):
     tab_name = "'" + tab + "'!A:L"
     # Call the Sheets API
     sheet = service.spreadsheets()
-    # cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
-    #     'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
-    #     'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-    #     'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED')
 
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
     'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
     'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
     'EXTENDED_QTY')
 
+    # Conditional to skip tabs that don't match the search criteria.
+    # Assumes assembly tabs start are of format -XXXXX
     if tab[0] != "-":
         print("Did not attempt to parse {}".format(tab_name))
         df = pd.DataFrame(columns=cols)
@@ -143,6 +147,8 @@ def pull_old_order_list(creds, service):
     return df
 
 def clean_up_frame(df):
+    # Remove anything from the dataframe that is not a part line item
+    # Any part that is listed before the PARTNO column header will be ignored
     BOM_start = 0
     for index in range(0, int(len(df))):
         if df["PARTNO"].iloc[index] == "PARTNO":
@@ -152,6 +158,8 @@ def clean_up_frame(df):
     return df
 
 def multiple_assy_check(parent, df, add_parts=0):
+    # Searches the part number dataframe recursively until it has found
+    # all parent assemblies for every individual part in the order list
     try:
         final_multiplier = 0
         df_parent_as_part = df.loc[df["PARTNO"] == parent]
@@ -176,6 +184,8 @@ def multiple_assy_check(parent, df, add_parts=0):
         return add_parts
 
 def order_quantity(df, builds):
+    # Calculated the order quantity for each part
+    # Assumes quantities are integers
     for i in range(0, len(df["PARTNO"])):
         try:
             part_no = df["PARTNO"].iloc[i]
@@ -191,12 +201,11 @@ def order_quantity(df, builds):
         except ValueError:
             print(df.iloc[i])
             print("single child assembly qty is not a number: {}".format(single_quantity))
+            print(df.iloc[i])
     return df
 
 def merge_lists(new, old):
-
-    # new_drop_cols = ['QTY ORDERED', 'QTY RECEIVED']
-    # new = new.drop(columns=new_drop_cols)
+    # Merges the old and new list on the parent, partno, and description
 
     old_drop_cols = cols = ['ENGINEER', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
@@ -210,11 +219,10 @@ def merge_lists(new, old):
     return new
 
 def write_to_sheet(df, sheet_name):
+    # Writes the updated order list to the SR2.0 order sheet
     request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range='Full!A:Z', body = {})
     response = request.execute()
     print("Cleared range: {0}".format(response.get('clearedRange')))
-
-
     values = df
     data = [
         {
@@ -231,6 +239,7 @@ def write_to_sheet(df, sheet_name):
         spreadsheetId=WRITE_SPREADSHEET_ID, body=body).execute()
     print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
 
+########################## Main function ######################################
 if __name__ == '__main__':
 
     # Argument parser
@@ -242,6 +251,8 @@ if __name__ == '__main__':
                         help='Number of builds to order for')
     parser.add_argument('update_full', type=int,
                         help='Whether (1) or not (0) to update full bom sheet')
+    parser.add_argument('deleted_assy_as_parts', type = int,
+                        help='Whether (1) or not (0) to delete assemblies in the PARTNO')
     args = parser.parse_args()
 
     # Aquire Oauth credentials from google
@@ -250,28 +261,42 @@ if __name__ == '__main__':
     # Retrieve the tab names from the BOM spreadsheet
     tab_names = get_sheet_names(creds, service)
 
-    # Retrieve the full BOM from the spreadsheets
+    # Retrieve the full BOM from the master BOM spreadsheet
     full_BOM = []
     for tab in tab_names:
         full_BOM.append(scan_for_line_items(creds, service, tab))
 
+    # Clean up dataframe and drop ros with empty part numbers
     full_BOM_df = pd.concat(full_BOM)
     full_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     full_BOM_df.dropna(subset=['PARTNO'], inplace=True)
 
+    # Determine the order quantity based on the builds and quantities from the master bom
     order_df = order_quantity(full_BOM_df, args.builds)
 
-    BOM_file_name = "BOM.csv"
-    order_df.to_csv(BOM_file_name) 
+    # Save the dataframe to a csv for posterity and debugging
+    order_df.to_csv("BOM.csv") 
 
     order_df = order_df.reset_index()
 
-    # Retrieve old order list
+    # Retrieve old order list from SR2.0 Order spreadsheet
     old_order_list_df = pull_old_order_list(creds, service)
+    # Save for posterity and debugging
     old_order_list_df.to_csv("old.csv")
 
+    # Merge the old and new order lists together.
     updated_df = merge_lists(order_df, old_order_list_df)
+
+    # If directed, delete any assembly that is in the PARTNO column to clean up the ordering sheet 
+    if args.deleted_assy_as_parts == 1:
+        m = ~updated_df['PARTNO'].str.contains('RC-ASY-\d+')
+        print(m)
+        updated_df = updated_df[m]
+
+    # Save for posterity and debugging
     updated_df.to_csv("results.csv")
+
+    # Get ready to send the merged order list back to the Google spreadsheet
     del updated_df["index"]
     full_order_list = updated_df.values.tolist()
     full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
@@ -281,8 +306,8 @@ if __name__ == '__main__':
     updated_df.to_csv("results.csv", index=False)
     update_time = time.strftime("%c")
     full_order_list.insert(0, ["Last updated: " + update_time])
-    # print(full_order_list)
 
+    # If directed, update the SR2.0 order list with merged and updated order list
     if args.update_full == 1:
         print("updating full BOM sheet")
         write_to_sheet(full_order_list, "'Full'!A1")
