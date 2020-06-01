@@ -44,8 +44,8 @@ def tolerance_interval(data, con=0.95, cov=0.95):
 
 def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
 
-    cols = ("filename", "reagent", "valve", "mass 1", "mass 2", "mass 3", "pressure 1", "pressure 2", "pressure 3", "L1", "L2",
-             "L3", "Lavg", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound")
+    cols = ("filename", "reagent", "valve", "mass 1", "mass 2", "mass 3", "mass 4", "mass 5", "pressure 1", "pressure 2", "pressure 3", 
+            "pressure 4", "pressure 5", "L1", "L2", "L3", "L4", "L5", "Lavg", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound")
     stats_df = pd.DataFrame(columns=cols)
 
     vol_flow = []
@@ -79,8 +79,8 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
     else:
         pass_fail = True
 
-    stats_df.loc[0] = (filename, reagent, valve, masses[0], masses[1], masses[2], pressures[0], pressures[1], pressures[2],
-                       lohm[0], lohm[1], lohm[2], lohm_avg, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper)
+    stats_df.loc[0] = (filename, reagent, valve, masses[0], masses[1], masses[2], masses[3], masses[4], pressures[0], pressures[1], pressures[2],
+                       pressures[3], pressures[4], lohm[0], lohm[1], lohm[2], lohm[3], lohm[4], lohm_avg, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper)
 
     return stats_df
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
                     reagent = "valve"
                     valve = j
                     # dis_time = (float(input_map['reagents']['valve_%d' % j]['dispenses']))
-                    for i in range(0, 3):
+                    for i in range(0, 5):
                         print(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
                         masses.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
                         pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_static_pressure']))
