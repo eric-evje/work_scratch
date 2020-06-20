@@ -124,7 +124,7 @@ def pull_old_order_list(creds, service):
     cols = ('ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'NOTES')
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'ORDER NOTES')
 
     row_list = []
     try:
@@ -207,7 +207,7 @@ def order_quantity(df, builds):
 def merge_lists(new, old):
     # Merges the old and new list on the parent, partno, and description
 
-    old_drop_cols = cols = ['ENGINEER', 'REV', 'QTY', 'VENDOR', 
+    old_drop_cols = ['ENGINEER', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
         'EXTENDED_QTY']
@@ -293,7 +293,7 @@ if __name__ == '__main__':
         updated_df = updated_df[m]
 
     # Save for posterity and debugging
-    updated_df.to_csv("results.csv")
+    # updated_df.to_csv("results.csv")
 
     # Get ready to send the merged order list back to the Google spreadsheet
     del updated_df["index"]
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     full_order_list.insert(0, ['ENGINEER', 'PARENT', 'PARTNO', 'DESCRIPTION', 'REV', 'QTY', 'VENDOR', 
         'VENDOR PARTNO', 'MANUFACTURER', 'MANUF. PARTNO', 
         'APPROX. LEAD TIME [WEEKS]', 'COST EA.', 'EXT COST', 'NOTES', 'MULTIPLIER', 
-        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'NOTES'])
+        'EXTENDED_QTY', 'QTY ORDERED', 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 'EXP REC DATE', 'ORDER NOTES'])
     updated_df.to_csv("results.csv", index=False)
     update_time = time.strftime("%c")
     full_order_list.insert(0, ["Last updated: " + update_time])
