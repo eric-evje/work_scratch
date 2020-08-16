@@ -9,8 +9,16 @@ from numpy import mean
 from numpy import sqrt
 from scipy.stats import chi2
 from scipy.stats import norm
+from scipy.stats import sem, t
+from scipy.stats import linregress
 
 
+def confint(data, confidence=0.95):
+    n = len(data)
+    m = mean(data)
+    std_err = sem(data)
+    h = std_err * t.ppf((1 + confidence) / 2, n - 1)
+    return (h / m)
 
 def tolerance_interval(data, con=0.95, cov=0.95):
     """
@@ -45,7 +53,7 @@ def tolerance_interval(data, con=0.95, cov=0.95):
 def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
 
     cols = ("filename", "reagent", "valve", "mass 1", "mass 2", "mass 3", "mass 4", "mass 5", "pressure 1", "pressure 2", "pressure 3", 
-            "pressure 4", "pressure 5", "L1", "L2", "L3", "L4", "L5", "Lavg", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound")
+            "pressure 4", "pressure 5", "L1", "L2", "L3", "L4", "L5", "Lavg", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound", "ci_cf", "p-value")
     stats_df = pd.DataFrame(columns=cols)
 
     vol_flow = []
@@ -53,8 +61,8 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
     # Convert mass and dispense time to volumetric flow rate of uL/s, assuming the calibration reagent is waster (i.e. specific gravity is ~1)
     # Converts pressure to psi using transfer function developed by pressure sensor manufacturer https://sensing.honeywell.com/index.php%3Fci_id%3D45841
     for i in range(len(masses)):
-        vol_flow.append(masses[i] / (dis_time / 1000.0)) # ul/s
-        pressures[i] = ((pressures[i] - 1638) / (14745 - 1638)) * 14.5 # psi
+        vol_flow.append(masses[i] * 1000.0 / (dis_time)) # ul/ms
+        # pressures[i] = ((pressures[i] - 1638) / (14745 - 1638)) * 14.5 # psi
 
     # Compute Lohm for each dispense using equations developed by Lee Co https://www.theleeco.com/sites/leecompany/assets/efs-handbook/264/
     lohm = []
@@ -65,6 +73,10 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
             lohm.append(0)
 
     tolerance_lower, tolerance_upper = tolerance_interval(lohm)
+    ci_cf = confint(lohm)
+    # print("ci_cf: {}".format(ci_cf))
+    slope, intercept, r_value, p_value, std_err = linregress(lohm, [0,1,2,3,4])
+    # print("p_value: {}".format(p_value))
 
     lohm_avg = numpy.mean(lohm)
     lohm_stdev = numpy.std(lohm)
@@ -80,7 +92,7 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
         pass_fail = True
 
     stats_df.loc[0] = (filename, reagent, valve, masses[0], masses[1], masses[2], masses[3], masses[4], pressures[0], pressures[1], pressures[2],
-                       pressures[3], pressures[4], lohm[0], lohm[1], lohm[2], lohm[3], lohm[4], lohm_avg, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper)
+                       pressures[3], pressures[4], lohm[0], lohm[1], lohm[2], lohm[3], lohm[4], lohm_avg, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper, ci_cf, p_value)
 
     return stats_df
 
@@ -103,18 +115,18 @@ if __name__ == "__main__":
                     valve = j
                     # dis_time = (float(input_map['reagents']['valve_%d' % j]['dispenses']))
                     for i in range(0, 5):
-                        print(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
+                        # print(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
                         masses.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
-                        pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_static_pressure']))
-                    print(masses)
-                    print(pressures)
+                        pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_gauge_pressure_psi']))
+                    # print(masses)
+                    # print(pressures)
                     df.append(cal_statistics(masses, pressures, 2000, filename, reagent, valve))
                 except KeyError:
                     print("couldn't find valve %d in file %s" % (j, file))
-                except IndexError:
-                    print("list index out of range")
+                # except IndexError:
+                #     print("list index out of range, valve %d in file %s" % (j, file))
 
     df_output = pd.concat(df)
-    filename = "results.csv"
+    filename = "results_yaml.csv"
     df_output.to_csv(filename, sep=',', index=False)
     print("saved to file")

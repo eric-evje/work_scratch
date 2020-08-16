@@ -84,6 +84,9 @@ from scipy.stats import norm
 
 #     return stats_df
 
+def calc_means(df):
+    
+
 if __name__ == "__main__":
     # results_cols = ('valve', 'ci_cf', 'corr', 'dis_1', 'dis_2', 'dis_3', 'dis_4', 'mean', 'stdev', 'delta')
     # results = pd.DataFrame(columns=results_cols)
@@ -120,6 +123,7 @@ if __name__ == "__main__":
                 print("placeholder")
     
     df_output = pd.concat(final)
+    means = calc_means(df_output)
     df_output.to_csv("cal_results.csv", sep=',', index=False)
 
 
