@@ -54,7 +54,7 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve):
     # Converts pressure to psi using transfer function developed by pressure sensor manufacturer https://sensing.honeywell.com/index.php%3Fci_id%3D45841
     for i in range(len(masses)):
         vol_flow.append(masses[i] / (dis_time / 1000.0)) # ul/s
-        pressures[i] = ((pressures[i] - 1638) / (14745 - 1638)) * 14.5 # psi
+        # pressures[i] = ((pressures[i] - 1638) / (14745 - 1638)) * 15 # psi
 
     # Compute Lohm for each dispense using equations developed by Lee Co https://www.theleeco.com/sites/leecompany/assets/efs-handbook/264/
     lohm = []
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                     for i in range(0, 5):
                         print(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
                         masses.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['grams']))
-                        pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_static_pressure']))
+                        pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_gauge_pressure_psi']))
                     print(masses)
                     print(pressures)
                     df.append(cal_statistics(masses, pressures, 2000, filename, reagent, valve))
