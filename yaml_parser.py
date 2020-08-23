@@ -14,6 +14,14 @@ from scipy.stats import linregress
 
 
 def confint(data, confidence=0.95):
+    '''
+    params: 
+            data: array-like. normally distributed continuous data
+            con: level of confidence to achieve. Defaults to 0.95
+            cov: percent of population covered by the interval. Defaults to 0.95
+    Returns:
+            lower bound, upper bound
+    '''
     n = len(data)
     m = mean(data)
     std_err = sem(data)
