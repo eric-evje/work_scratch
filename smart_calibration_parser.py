@@ -97,7 +97,7 @@ if __name__ == "__main__":
     for file in dirs:
         if file.endswith(".csv"):
             try:
-                results_cols = ('valve', 'ci_cf', 'corr', 'dis_1', 'dis_2', 'dis_3', 'dis_4', 'mean', 'stdev', 'delta')
+                results_cols = ('valve', 'ci_cf', 'corr', 'dis_1', 'dis_2', 'dis_3', 'dis_4', 'mean', 'stdev', 'delta', 'abs_delta')
                 results = pd.DataFrame(columns=results_cols)
                 filename = "/Users/ericevje/gitrepos/work_scratch/cal_files/" + file
                 df = pd.read_csv(filename)
@@ -111,9 +111,10 @@ if __name__ == "__main__":
                 mean = numpy.mean(dis)
                 stdev = numpy.std(dis)
                 delta = mean - 200
+                abs_delta = abs(delta)
 
                 # results_line = (valve, ci_cf, corr, dis[0], dis[1], dis[2], dis[3], mean, stdev, delta)
-                results.loc[0] = (valve, ci_cf, corr, dis[0], dis[1], dis[2], dis[3], mean, stdev, delta)
+                results.loc[0] = (valve, ci_cf, corr, dis[0], dis[1], dis[2], dis[3], mean, stdev, delta, abs_delta)
                 # print(results) 
                 final.append(results)
                 # print(final)
