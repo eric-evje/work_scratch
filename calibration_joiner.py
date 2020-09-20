@@ -24,7 +24,7 @@ def confint(data, confidence=0.95):
     # print(data)
     m = numpy.mean(data)
     std_err = sem(data)
-    h = std_err * t.ppf((1 + confidence) / 2, n - 1)
+    h = std_err * t.ppf((1 + confidence) / 2.0, n - 1)
     return (h / m)
 
 def tolerance_interval(data, con=0.95, cov=0.95):
@@ -57,11 +57,11 @@ def tolerance_interval(data, con=0.95, cov=0.95):
     lower, upper = data_mean-(k_2*data_std), data_mean+(k_2*data_std)
     return (lower, upper)
 
-def cal_statistics(masses, pressures, dis_time, filename, reagent, valve, time, replicate):
+def cal_statistics(masses, pressures, dis_time, filename, reagent, valve, time, replicate, flohms, prev_flohms):
     # print(masses)
 
     cols = ("filename", "time", "replicate", "reagent", "valve", "mass 1", "mass 2", "mass 3", "mass 4", "mass 5", "pressure 1", "pressure 2", "pressure 3", 
-            "pressure 4", "pressure 5", "L1", "L2", "L3", "L4", "L5", "Lavg", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound", "ci_cf", "p-value")
+            "pressure 4", "pressure 5", "L1", "L2", "L3", "L4", "L5", "Lavg", "Ldiff", "prev_flohms", "flohms", "Lstdev", "L_cv_abs", "pass/fail", "lowerbound", "upperbound", "ci_cf", "p-value")
     stats_df = pd.DataFrame(columns=cols)
 
     vol_flow = []
@@ -88,18 +88,24 @@ def cal_statistics(masses, pressures, dis_time, filename, reagent, valve, time, 
     lohm_avg = numpy.mean(lohm)
     lohm_stdev = numpy.std(lohm)
 
+    if prev_flohms == 0:
+        Ldiff = numpy.nan
+        prev_flohms = numpy.nan
+    else:
+        Ldiff = prev_flohms - lohm_avg
+
     if lohm_avg != 0:
         lohm_cv = numpy.abs((lohm_stdev / lohm_avg) * 100)
     else:
         lohm_cv = "NaN"
 
-    if lohm_cv > 2.0:
+    if ci_cf > 0.05:
         pass_fail = False
     else:
         pass_fail = True
 
     stats_df.loc[0] = (filename, time, replicate, reagent, valve, masses[0], masses[1], masses[2], masses[3], masses[4], pressures[0], pressures[1], pressures[2],
-                       pressures[3], pressures[4], lohm[0], lohm[1], lohm[2], lohm[3], lohm[4], lohm_avg, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper, ci_cf, p_value)
+                       pressures[3], pressures[4], lohm[0], lohm[1], lohm[2], lohm[3], lohm[4], lohm_avg, Ldiff, prev_flohms, flohms, lohm_stdev, lohm_cv, pass_fail, tolerance_lower, tolerance_upper, ci_cf, p_value)
 
     return stats_df
     
@@ -159,10 +165,11 @@ if __name__ == "__main__":
         if file.endswith(".yaml"):
             filename = file
             stream = open(file, 'r')
-            input_map = yaml.load(stream)
+            input_map = yaml.load(stream, Loader=yaml.FullLoader)
 
             replicate = filename.split('_')[1]
 
+            prev_flohms = 0
             # print(input_map)
             for j in range(1, 21):
                 try:
@@ -186,11 +193,14 @@ if __name__ == "__main__":
                         pressures.append(float(input_map['valves']['valve_%d' % j]['dispenses'][i]['mean_gauge_pressure_psi']))
                     # print(masses)
                     # print(pressures)
-                    final_cal.append(cal_statistics(masses, pressures, 2000, filename, reagent, valve, time, replicate))
+                    flohms = float(input_map['valves']['valve_%d' % j]['flohms'])
+                    final_cal.append(cal_statistics(masses, pressures, 2000, filename, reagent, valve, time, replicate, flohms, prev_flohms))
+                    prev_flohms = flohms
                 except KeyError:
                     print("couldn't find valve %d in file %s" % (j, file))
                 # except IndexError:
                 #     print("list index out of range, valve %d in file %s" % (j, file))
+
 
     df_cal = pd.concat(final_cal)
     filename = "results_yaml.csv"

@@ -22,9 +22,12 @@ import argparse
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
 # The ID and range of a sample spreadsheet.
-SPREADSHEET_ID = '1gGkE6kCS571NcA29B6psceN2jIOLUue-NVYQJiv3KGY'
+# SPREADSHEET_ID = '1gGkE6kCS571NcA29B6psceN2jIOLUue-NVYQJiv3KGY' #Sr2.0 BOM
+SPREADSHEET_ID = '1HDtEuJO9kTuiR1M8mG9s-hwDsXHXJcVFahQXsrDq_D0' #SR2.1 BOM
 
-WRITE_SPREADSHEET_ID = '1It9ZOMteyUv6LCGQOmFZdXyMyJ2IjfA-LEfSC2rxxDA'
+
+# WRITE_SPREADSHEET_ID = '1It9ZOMteyUv6LCGQOmFZdXyMyJ2IjfA-LEfSC2rxxDA' #SR2.0 order list
+WRITE_SPREADSHEET_ID = '1q9PZ0InlfxyAdrH0WY4owhNLBF1OBIHFyBm_uA2lVr8' #SR2.1 LLI list
 WRITE_RANGE = ["'1_wk'!A1", "'2_wk'!A:Z", "'3_wk'!A:Z", "'4_wk'!A:Z", 
             "'5_wk'!A:Z", "'6_wk'!A:Z","'7_wk'!A:Z", "'8_wk'!A:Z"]
 
@@ -64,6 +67,7 @@ def get_sheet_names(creds, service):
     for i in range(len(values)):
         tab_names.append(values[i][0])
 
+    print(tab_names)
     return tab_names
 
 def scan_for_line_items(creds, service, tab):
