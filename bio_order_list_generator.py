@@ -140,7 +140,7 @@ def scan_for_line_items(creds, service, tab):
 
 def pull_old_order_list(creds, service):
     # Call the Sheets API
-    tab = 'Full!A3:AF'
+    tab = 'Procurement - Build Tracking Sheet!A3:AH'
     sheet = service.spreadsheets()
     cols = ['OWNERSHIP', 'TYPE', 'PARENT', 'PARTNO',
             'DESCRIPTION', 'REV', 'QTY', 'UNITS',
@@ -150,7 +150,7 @@ def pull_old_order_list(creds, service):
             'FINAL CONCENTRATION', 'CSY QC PASS INITIALS',
             'PART KIT NAME', 'NOTES', 'MULTIPLIER',  
             'EXTENDED_QTY', 'APPROX. LEAD TIME [WEEKS]',   
-            'COST EA.', 'EXT COST', 'QTY ORDERED', 
+            'COST EA.', 'EXT COST', 'MANUFACTURE RESPONSIBILITY', 'LOT #', 'QTY ORDERED', 
             'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 
             'EXP REC DATE', 'ORDER NOTES']
 
@@ -185,7 +185,7 @@ def clean_up_frame(df):
         if df["PARTNO"].iloc[index] == 'General Manuacturing Guidelines':
             BOM_end = index
             break
-    df = df[BOM_start : BOM_end]
+    df = df.loc[BOM_start : BOM_end - 1]
     return df
 
 def multiple_assy_check(parent, df, add_parts=0):
@@ -238,6 +238,9 @@ def order_quantity(df, builds):
             print(df['PARENT'].iloc[i], df['PARTNO'].iloc[i])
             print("Type Error")
             # print(df.iloc[i])
+        except AttributeError:
+            print(df['PARENT'].iloc[i], df['PARTNO'].iloc[i])
+            print("Attribute Error: {}".format(single_quantity))
     return df
 
 def merge_lists(new, old):
@@ -314,7 +317,7 @@ if __name__ == '__main__':
     # full_BOM_df['QTY'] = full_BOM_df['QTY'].astype(str)
     full_BOM_df['PARTNO'].replace('', np.nan, inplace=True)
     full_BOM_df.dropna(subset=['PARTNO'], inplace=True)
-    full_BOM_df = full_BOM_df[full_BOM_df['PARENT'] != full_BOM_df['PARTNO']]
+    full_BOM_df = full_BOM_df.loc[full_BOM_df['PARENT'] != full_BOM_df['PARTNO']]
 
     for i in range(len(full_BOM_df)):
         string = full_BOM_df['PARTNO'].iloc[i][0:3]
@@ -370,7 +373,7 @@ if __name__ == '__main__':
                                 'FINAL CONCENTRATION', 'CSY QC PASS INITIALS',
                                 'PART KIT NAME', 'NOTES', 'MULTIPLIER',  
                                 'EXTENDED_QTY', 'APPROX. LEAD TIME [WEEKS]',   
-                                'COST EA.', 'EXT COST', 'QTY ORDERED', 
+                                'COST EA.', 'EXT COST', 'MANUFACTURE RESPONSIBILITY', 'LOT #', 'QTY ORDERED', 
                                 'QTY RECEIVED', 'ORDERER', 'DATE ORDERED', 
                                 'EXP REC DATE', 'ORDER NOTES'])
     updated_df.to_csv("results.csv", index=False)

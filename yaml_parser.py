@@ -120,11 +120,12 @@ if __name__ == "__main__":
                     reagent = "valve"
                     valve = j
                     timestamp = input_map['creation_ts']
-                    timestamp_split = timestamp.split(sep='T', maxsplit=1)
-                    date = timestamp_split[0]
-                    time = timestamp_split[1].split(sep='.', maxsplit=1)[0]
-                    date = date.replace('-', '/')
-                    time = date + " " + time
+                    time = timestamp
+                    # timestamp_split = timestamp.split(sep='T', maxsplit=1)
+                    # date = timestamp_split[0]
+                    # time = timestamp_split[1].split(sep='.', maxsplit=1)[0]
+                    # date = date.replace('-', '/')
+                    # time = date + " " + time
                     # m/d/yyyy h:mm:ss
                     print(time)
                     # dis_time = (float(input_map['reagents']['valve_%d' % j]['dispenses']))
