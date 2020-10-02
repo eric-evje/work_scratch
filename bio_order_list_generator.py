@@ -140,7 +140,7 @@ def scan_for_line_items(creds, service, tab):
 
 def pull_old_order_list(creds, service):
     # Call the Sheets API
-    tab = 'Procurement - Build Tracking Sheet!A3:AH'
+    tab = "'Procurement - Build Tracking Sheet'!A3:AH"
     sheet = service.spreadsheets()
     cols = ['OWNERSHIP', 'TYPE', 'PARENT', 'PARTNO',
             'DESCRIPTION', 'REV', 'QTY', 'UNITS',
@@ -171,7 +171,7 @@ def pull_old_order_list(creds, service):
         pass
     row_list.append(['']*len(cols))
     df = pd.DataFrame(row_list, columns=cols)
-    df = clean_up_frame(df)  
+    # df = clean_up_frame(df)  
     return df
 
 def clean_up_frame(df):
@@ -185,7 +185,7 @@ def clean_up_frame(df):
         if df["PARTNO"].iloc[index] == 'General Manuacturing Guidelines':
             BOM_end = index
             break
-    df = df.loc[BOM_start : BOM_end - 1]
+    df = df[BOM_start : BOM_end]
     return df
 
 def multiple_assy_check(parent, df, add_parts=0):
@@ -265,7 +265,8 @@ def merge_lists(new, old):
 
 def write_to_sheet(df, sheet_name):
     # Writes the updated order list to the SR2.0 order sheet
-    request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, range='Full!A:Z', body = {})
+    request = service.spreadsheets().values().clear(spreadsheetId=WRITE_SPREADSHEET_ID, 
+        range="'Procurement - Build Tracking Sheet'!A:AH", body = {})
     response = request.execute()
     print("Cleared range: {0}".format(response.get('clearedRange')))
     values = df
@@ -309,7 +310,7 @@ if __name__ == '__main__':
     # Retrieve the full BOM from the master BOM spreadsheet
     full_BOM = []
     for tab in tab_names:
-        time.sleep(1)
+        time.sleep(0.5)
         full_BOM.append(scan_for_line_items(creds, service, tab))
 
     # Clean up dataframe and drop ros with empty part numbers
@@ -383,7 +384,7 @@ if __name__ == '__main__':
     # If directed, update the SR2.0 order list with merged and updated order list
     if args.update_full == 1:
         print("updating full BOM sheet")
-        write_to_sheet(full_order_list, "'Full'!A1")
+        write_to_sheet(full_order_list, "'Procurement - Build Tracking Sheet'!A1")
 
     print("Did you remember to update the sheetnames list?")
 
