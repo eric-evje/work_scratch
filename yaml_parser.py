@@ -106,10 +106,10 @@ if __name__ == "__main__":
 
     df = []
 
-    for file in os.listdir('.'):
+    for file in os.listdir('./Glacier_Full'):
         if file.endswith(".yaml"):
             filename = file
-            stream = open(file, 'r')
+            stream = open('./Glacier_Full/' + file, 'r')
             input_map = yaml.load(stream)
             # print(input_map)
             for j in range(1, 21):
