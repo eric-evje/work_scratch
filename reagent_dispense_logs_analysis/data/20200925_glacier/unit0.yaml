@@ -1,0 +1,184 @@
+creation_ts: '2020-09-28T20:10:43.266873Z'
+lib_version: 8.0.0
+uuid: e9a53670-9ff5-4f29-8200-669c68000208
+valves:
+  valve_1:
+    dispenses:
+    - {grams: 0.2145429361668248, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.2327717311839333, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.22579190630995435, mean_gauge_pressure_psi: 6.01854}
+    - {grams: 0.22899989405935048, mean_gauge_pressure_psi: 6.01854}
+    - {grams: 0.22766906944715812, mean_gauge_pressure_psi: 6.016251}
+    lohms: 0.02144442469895296
+    pressure_stable: true
+  valve_10:
+    dispenses:
+    - {grams: 0.19342485087322348, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.21218597573521403, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.19899680339430598, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.2006568319895214, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.19753990066094593, mean_gauge_pressure_psi: 6.001373}
+    lohms: 0.024217848199291913
+    pressure_stable: true
+  valve_11:
+    dispenses:
+    - {grams: 0.20781176536511703, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.20340953763475228, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.20359165047642636, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.19685697750468534, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.19850299741977506, mean_gauge_pressure_psi: 6.002518}
+    lohms: 0.02443026701967134
+    pressure_stable: true
+  valve_12:
+    dispenses:
+    - {grams: 0.22686707250979998, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.22459416415896702, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.22204108220556737, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.21787700203738494, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.2182552364008534, mean_gauge_pressure_psi: 6.001373}
+    lohms: 0.02220240592606565
+    pressure_stable: true
+  valve_13:
+    dispenses:
+    - {grams: 0.20051674518823892, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.19141810744482246, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.1915616964161418, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.18754470738931195, mean_gauge_pressure_psi: 6.001373}
+    - {grams: 0.18815408497490352, mean_gauge_pressure_psi: 6.001373}
+    lohms: 0.025838122906743283
+    pressure_stable: true
+  valve_14:
+    dispenses:
+    - {grams: 0.19522846843975458, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.19560670280322665, mean_gauge_pressure_psi: 6.001373}
+    - {grams: 0.18678823866238053, mean_gauge_pressure_psi: 6.001373}
+    - {grams: 0.19018534359352451, mean_gauge_pressure_psi: 5.999084}
+    - {grams: 0.18936933797604252, mean_gauge_pressure_psi: 6.001373}
+    lohms: 0.025719844101832236
+    pressure_stable: true
+  valve_15:
+    dispenses:
+    - {grams: 0.21666174903624597, mean_gauge_pressure_psi: 6.004807}
+    - {grams: 0.2112438919965698, mean_gauge_pressure_psi: 6.004807}
+    - {grams: 0.2089149489252304, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.20821801708883503, mean_gauge_pressure_psi: 6.002518}
+    - {grams: 0.20671558614506466, mean_gauge_pressure_psi: 6.001373}
+    lohms: 0.023471049771098335
+    pressure_stable: true
+  valve_16:
+    dispenses:
+    - {grams: 0.2506222918375752, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.24998139472170078, mean_gauge_pressure_psi: 6.001373}
+    - {grams: 0.24702556321460542, mean_gauge_pressure_psi: 6.001373}
+    - {grams: 0.24740379757807388, mean_gauge_pressure_psi: 5.999084}
+    - {grams: 0.24607647513590383, mean_gauge_pressure_psi: 5.999084}
+    lohms: 0.019784496428878588
+    pressure_stable: true
+  valve_17:
+    dispenses:
+    - {grams: 0.22579891065000812, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.22120056139786176, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.22210762343616988, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.22186247153392288, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.2223072471280011, mean_gauge_pressure_psi: 6.021973}
+    lohms: 0.022122953474821776
+    pressure_stable: true
+  valve_18:
+    dispenses:
+    - {grams: 0.20107359022334823, mean_gauge_pressure_psi: 6.026551}
+    - {grams: 0.19795665889476186, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.19558568978303992, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.19586586338559936, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.19618806302855046, mean_gauge_pressure_psi: 6.024262}
+    lohms: 0.02499201306253055
+    pressure_stable: true
+  valve_19:
+    dispenses:
+    - {grams: 0.22065422287284855, mean_gauge_pressure_psi: 6.026551}
+    - {grams: 0.21513130073221692, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.21908875286849616, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.2152118506429506, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.22048261654127965, mean_gauge_pressure_psi: 6.021973}
+    lohms: 0.02256961103633209
+    pressure_stable: true
+  valve_2:
+    dispenses:
+    - {grams: 0.20330797470382275, mean_gauge_pressure_psi: 6.019684}
+    - {grams: 0.2172781309619022, mean_gauge_pressure_psi: 6.019684}
+    - {grams: 0.2150857725217993, mean_gauge_pressure_psi: 6.01854}
+    - {grams: 0.2134712721370015, mean_gauge_pressure_psi: 6.016251}
+    - {grams: 0.21297046182240228, mean_gauge_pressure_psi: 6.013962}
+    lohms: 0.02285014965642456
+    pressure_stable: true
+  valve_20:
+    dispenses:
+    - {grams: 0.21852140132329623, mean_gauge_pressure_psi: 6.024262}
+    - {grams: 0.21526438319344196, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.2155935871764559, mean_gauge_pressure_psi: 6.021973}
+    - {grams: 0.21724310926157886, mean_gauge_pressure_psi: 6.019684}
+    - {grams: 0.21581422388847932, mean_gauge_pressure_psi: 6.019684}
+    lohms: 0.022722020542212985
+    pressure_stable: true
+  valve_3:
+    dispenses:
+    - {grams: 0.23498160047419697, mean_gauge_pressure_psi: 6.01854}
+    - {grams: 0.2305198358532889, mean_gauge_pressure_psi: 6.01854}
+    - {grams: 0.22661141409745506, mean_gauge_pressure_psi: 6.016251}
+    - {grams: 0.21163263287014888, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.22401980827369697, mean_gauge_pressure_psi: 6.011673}
+    lohms: 0.02197684774175361
+    pressure_stable: true
+  valve_4:
+    dispenses:
+    - {grams: 0.20944027443004598, mean_gauge_pressure_psi: 6.016251}
+    - {grams: 0.20384730888877492, mean_gauge_pressure_psi: 6.016251}
+    - {grams: 0.2025620124869838, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.2010490750331155, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.20031011715634667, mean_gauge_pressure_psi: 6.011673}
+    lohms: 0.024286377591810356
+    pressure_stable: true
+  valve_5:
+    dispenses:
+    - {grams: 0.21166065023039846, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.20488395121827124, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.20217327161342474, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.2005797842488173, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.20051324301820206, mean_gauge_pressure_psi: 6.009384}
+    lohms: 0.024269129871139838
+    pressure_stable: true
+  valve_6:
+    dispenses:
+    - {grams: 0.13129985667368602, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.1251290330771244, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.11684990312122136, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.11317962892757169, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.11214648876810134, mean_gauge_pressure_psi: 6.011673}
+    lohms: 0.04197465969125628
+    pressure_stable: true
+  valve_7:
+    dispenses:
+    - {grams: 0.21002863899543808, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.20142030505652292, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.19788661549412062, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.19577830913479558, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.19575729611460885, mean_gauge_pressure_psi: 6.009384}
+    lohms: 0.024802625009779696
+    pressure_stable: true
+  valve_8:
+    dispenses:
+    - {grams: 0.22128111130859907, mean_gauge_pressure_psi: 6.013962}
+    - {grams: 0.21750927418401442, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.21478808806907, mean_gauge_pressure_psi: 6.011673}
+    - {grams: 0.21388452820078419, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.21261324047913513, mean_gauge_pressure_psi: 6.007095}
+    lohms: 0.02283575588252846
+    pressure_stable: true
+  valve_9:
+    dispenses:
+    - {grams: 0.22367659561055916, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.21906423767827438, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.21447989710624096, mean_gauge_pressure_psi: 6.009384}
+    - {grams: 0.21488264665994394, mean_gauge_pressure_psi: 6.007095}
+    - {grams: 0.21306852258331127, mean_gauge_pressure_psi: 6.007095}
+    lohms: 0.02276201423458199
+    pressure_stable: true
