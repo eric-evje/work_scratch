@@ -35,9 +35,9 @@ def solution_viscosity(volume_percent, solute_den=1.13, solute_vis=0.003302):
     '''
     #Variables ----------------
     volume_percent = float(volume_percent)
-    waterDen = .9982 #Density of water (g/cm3)
+    waterDen = .9982 #Density of water (g/cm3) .9982
     water_vol = 100.0 - volume_percent
-    water_vis = 0.00089 #Pa * s
+    water_vis = 0.001 #Pa * s .001
     T = 20.0 # Constant for temperature in C
 
     #Fraction cacluator ----------------
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                         help='percent of the mixture by volume of the solute')
     parser.add_argument('-d','--density', dest='solute_den', default=1.13, action='store', nargs='?', type=float,
                         help='density of the solute in g/cm^3')
-    parser.add_argument('-dv','--dynamic_viscosity', dest='solute_vis', default=0.003302, action='store', nargs='?', type=float,
+    parser.add_argument('-v','--dynamic_viscosity', dest='solute_vis', default=0.003302, action='store', nargs='?', type=float,
                         help='dynamic viscosity of solute in Pa*s')
 
     args = parser.parse_args()

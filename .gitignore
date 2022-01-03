@@ -1,0 +1,5 @@
+ADP_DS_script/**
+*.txt
+*.json
+*.yaml
+*.csv

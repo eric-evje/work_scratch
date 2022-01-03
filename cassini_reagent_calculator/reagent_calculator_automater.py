@@ -83,7 +83,7 @@ def return_values(creds, service):
 
     return df
 
-def write_to_sheet(esiv=1000, img_overshoot=2.15, well_plate=2000, quencher_period=1):
+def write_to_sheet(esiv=1000, img_overshoot=2.15, well_plate=2000, quencher_period=1, interweaving=0):
     # Write ESIV
     body = {
     'values': [[esiv],]
@@ -120,10 +120,14 @@ def write_to_sheet(esiv=1000, img_overshoot=2.15, well_plate=2000, quencher_peri
     result = request.execute()
     print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
 
-    # # Write ESIV
-    # request = service.spreadsheets().values().update(spreadsheetId=spreadsheet_id, 
-    #     range="'Reagent Calculator'B4", valueInputOption=RAW, body=df['ESIV'].iloc[i])
-    # print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
+     # Write interweaving boolean
+    body = {
+    'values': [[interweaving],]
+    }
+    request = service.spreadsheets().values().update(spreadsheetId=WRITE_SPREADSHEET_ID, 
+        range="'Reagent Calculator'!B32", valueInputOption='RAW', body=body)
+    result = request.execute()
+    print('{0} cells updated.'.format(result.get('totalUpdatedCells')))
 
 ########################## Main function ######################################
 if __name__ == '__main__':
@@ -135,7 +139,8 @@ if __name__ == '__main__':
         img_overshoot = df_conditions['img_overshoot'].iloc[i]
         well_plate = df_conditions['well_plate'].iloc[i]
         quencher_period = df_conditions['quencher_period'].iloc[i]
-        write_to_sheet(esiv=esiv, img_overshoot=img_overshoot, well_plate=well_plate, quencher_period=quencher_period)
+        interweaving=df_conditions['interweaving'].iloc[i]
+        write_to_sheet(esiv=esiv, img_overshoot=img_overshoot, well_plate=well_plate, quencher_period=quencher_period, interweaving=interweaving)
         time.sleep(2)
         df_vals = return_values(creds, service)
         df_conditions['AP'].iloc[i] = df_vals['AP'].iloc[0]
