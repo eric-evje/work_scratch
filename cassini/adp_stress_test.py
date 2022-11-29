@@ -15,7 +15,10 @@ async def adp_test():
     fgc = FGC()
 
     await fgc.home_adp()
-    await fgc.init_adp() #TODO: Finalize this with proper initialization thing
+    # await fgc.home_sipper()
+    # await fgc.home_gantry()
+    # await fgc.initialize_adp(linResolution_nmpS=31800)
+    # await fgc.set_gantry_x_position(400000000)
     cycles = 50000
     check_cycles = 1000
     with open ("{}_adp_stress_test.txt".format(time.strftime("%Y%m%d_%H%M%S")), 'w') as f:
@@ -25,8 +28,6 @@ async def adp_test():
             position = 110000000
             await fgc.set_adp_position(position)
             await asyncio.sleep(0.1)
-            # state = await fgc.get_state()
-            # z_pos_nm = state['tele']['MotionAxisTelemetry_SipperZ']['position_nm']
             new_line = "{}, {}, {}\n".format(time.time(), cycle, position)
             f.writelines(new_line)
 
@@ -44,23 +45,23 @@ async def adp_test():
 
 async def check_connectivity(cycle):
     fgc = FGC()
-    plunger_positions = [100, 200]
+    plunger_positions = [100, 110]
 
     steps = np.arange(0, 110000000, 500000)
     for i, step in enumerate(steps):
         await fgc.set_adp_position(step)
         try:
-            await fgc.adp_absolute_position(plunger_positions[i%2])
+            await fgc.adp_absolute_position(200, plunger_positions[i%2], 0)
         except Exception as error:
             print(error)
             print("Failed after {} cycles".format(cycle))
             raise
 
-    steps = np.arange(0, 110000000, 500000)
+    steps = np.flip(np.arange(0, 110000000-250000, 500000))
     for i, step in enumerate(steps):
         await fgc.set_adp_position(step)
         try:
-            await fgc.adp_absolute_position(plunger_positions[i%2])
+            await fgc.adp_absolute_position(200, plunger_positions[i%2], 0)
         except Exception as error:
             print(error)
             print("Failed after {} cycles".format(cycle))
