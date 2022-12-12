@@ -23,13 +23,13 @@ async def adp_test():
     exchange_cycles_per_cycle = 7 # Simplified version of liquid handling cycle
     check_cycles = 15 #Check once per simulated run
 
-    with open ("{}_adp_stress_test.txt".format(time.strftime("%Y%m%d_%H%M%S")), 'w') as f:
+    with open ("{}_adp_stress_test_simulated_run.txt".format(time.strftime("%Y%m%d_%H%M%S")), 'w') as f:
         f.write("time, cycle, exchange_cycles, z_pos_nm\n")
         for cycle in range(cycles):
             for exchange_cycles in range(exchange_cycles_per_cycle):
                 for position in exchange_cycle:
                     print("cycle {} of {}".format(cycle+1, cycles), end='\r')
-                    await fgc.set_adp_position(position, speed_nmps=100000000)
+                    await fgc.set_adp_position(position * 1000000, speed_nmps=100000000)
                     await asyncio.sleep(0.1)
                     new_line = "{}, {}, {}, {}\n".format(time.time(), cycle, exchange_cycles, position)
                     f.writelines(new_line)
