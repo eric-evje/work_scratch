@@ -1,7 +1,9 @@
 import asyncio
 import time
-import loguru; LOG = loguru.logger
+from loguru import logger
+from loguru import logger as LOG
 import os
+import sys
 import json
 import argus.config
 from rcembedded.readcoor.rc_pcb_fgc.cs1.interface import FGC
@@ -10,25 +12,31 @@ import numpy as np
 # from argus.config.instrument_models.cs1.cs1_wrapper import CS1_Wrapper
 
 
-
+@LOG.catch
 async def adp_test():
+    LOG.remove(0)
+    LOG.add(sys.stderr)
+    LOG.add("output.log")
     fgc = FGC()
+    await fgc.reset()
+    await fgc.init()
     await fgc.home_adp()
     # await fgc.home_sipper()
-    await fgc.home_gantry()
+    # await fgc.home_gantry()
     await fgc.initialize_adp(linResolution_nmpS=31800)
-    await fgc.set_gantry_x_position(400000000)
+    # await fgc.set_gantry_x_position(400000000)
     cycles = 11000 #Number of decoding cycles over 7 years
     exchange_cycle = [110, 50, 20, 90] # Corresponds to tip pickup, reagent pickup, dispense, tip eject
     exchange_cycles_per_cycle = 7 # Simplified version of liquid handling cycle
     check_cycles = 15 #Check once per simulated run
-
-    with open ("{}_adp_stress_test_simulated_run.txt".format(time.strftime("%Y%m%d_%H%M%S")), 'w') as f:
+ 
+    with open ("{}_adp_stress_test_wide_routing_samtec_metal.txt".format(time.strftime("%Y%m%d_%H%M%S")), 'w') as f:
         f.write("time, cycle, exchange_cycles, z_pos_nm\n")
         for cycle in range(cycles):
             for exchange_cycles in range(exchange_cycles_per_cycle):
                 for position in exchange_cycle:
-                    print("cycle {} of {}".format(cycle+1, cycles), end='\r')
+                    # print("cycle {} of {}, exchange {}, position {}".format(cycle+1, cycles, exchange_cycles, position))
+                    LOG.info("cycle {} of {}, exchange {}, position {}".format(cycle+1, cycles, exchange_cycles, position))
                     await fgc.set_adp_position(position * 1000000, speed_nmps=100000000)
                     await asyncio.sleep(0.1)
                     new_line = "{}, {}, {}, {}\n".format(time.time(), cycle, exchange_cycles, position)
@@ -44,8 +52,9 @@ async def adp_test():
                 await check_connectivity(cycle)
                 await fgc.home_adp()
         await fgc.home_sipper()
-        return
+        return 
 
+@LOG.catch
 async def check_connectivity(cycle):
     steps = np.arange(0, 110000000, 500000)
     await adp_cycle(cycle, steps)
@@ -55,8 +64,10 @@ async def check_connectivity(cycle):
 
     return
 
+@LOG.catch
 async def adp_cycle(cycle, steps):
     fgc = FGC()
+    LOG.info("Checking connectivity")
     plunger_positions = [100, 110]
 
     for i, step in enumerate(steps):
@@ -68,16 +79,19 @@ async def adp_cycle(cycle, steps):
             except Exception as error:
                 print(error)
                 if j < tries:
-                    print("retrying {} more times".format(tries - j - 1))
+                    # print("retrying {} more times".format(tries - j - 1))
+                    LOG.warning("retrying {} more times".format(tries - j - 1))
                     await asyncio.sleep(1)
                     continue
                 else:
-                    print("Failed after {} cycles".format(cycle))
+                    # print("Failed after {} cycles".format(cycle))
+                    LOG.error("Failed after {} cycles".format(cycle))
                     raise
             break
     return
 
 
+@LOG.catch
 async def main():
     await adp_test()
     return

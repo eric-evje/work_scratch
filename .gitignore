@@ -3,3 +3,5 @@ ADP_DS_script/**
 *.json
 *.yaml
 *.csv
+*.log
+*.zip
