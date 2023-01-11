@@ -17,7 +17,7 @@ async def adp_test():
     time_str = time.strftime("%Y%m%d_%H%M%S")
     LOG.remove(0)
     LOG.add(sys.stderr)
-    LOG.add("{}_output.log".format(time_str))
+    LOG.add("{}_output_0002.log".format(time_str))
     fgc = FGC()
     await fgc.reset()
     await fgc.init()
@@ -31,7 +31,7 @@ async def adp_test():
     exchange_cycles_per_cycle = 7 # Simplified version of liquid handling cycle
     check_cycles = 15 #Check once per simulated run
  
-    with open ("{}_adp_stress_test_wide_routing_samtec_metal.txt".format(time_str), 'w') as f:
+    with open ("{}_adp_stress_test_0002.txt".format(time_str), 'w') as f:
         f.write("time, cycle, exchange_cycles, z_pos_nm\n")
         for cycle in range(cycles):
             for exchange_cycles in range(exchange_cycles_per_cycle):
@@ -51,7 +51,7 @@ async def adp_test():
                             new_line = "{}, {}, {}, {}\n".format(time.time(), cycle, exchange_cycles, position)
                             f.writelines(new_line)
                         except Exception as error:
-                            LOG.warning(error)
+                            LOG.critical(error)
                             if i < tries - 1:
                                 LOG.warning("reseting and retrying")
                                 await reset_fgc()
@@ -99,7 +99,7 @@ async def adp_cycle(cycle, steps):
                 await fgc.set_adp_position(step)
                 await fgc.adp_absolute_position(200, plunger_positions[i%2], 0)
             except Exception as error:
-                LOG.warning(error)
+                LOG.critical(error)
                 if j < tries - 1:
                     LOG.warning("retrying {} more times".format(tries - j - 1))
                     await reset_fgc()
