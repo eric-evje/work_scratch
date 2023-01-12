@@ -9,15 +9,17 @@ import numpy as np
 
 async def test_cool_down_time():
     fdc = FDC()
+    high_sp = float(input("Enter high input in C: "))
+    low_sp = float(input("Enter low temperature in C: "))
     await fdc.reset()
     await fdc.init()
-    await heat_and_stabilize()
-    await cool_and_stabilize()
+    await heat_and_stabilize(set_point_C=high_sp)
+    await cool_and_stabilize(set_point_C=low_sp)
     for i in range(1,4):
         await fdc.disable_temperature_controller(i)
     return
 
-async def heat_and_stabilize(set_point_C=30, t_stabilize=60):
+async def heat_and_stabilize(set_point_C=25, t_stabilize=60):
     fdc = FDC()
     await fdc.set_lur_temp(1, set_point_C)
     await asyncio.sleep(0.5)
@@ -48,7 +50,7 @@ async def heat_and_stabilize(set_point_C=30, t_stabilize=60):
     await asyncio.sleep(t_stabilize)
     return
 
-async def cool_and_stabilize(set_point_C=5):
+async def cool_and_stabilize(set_point_C=10):
     fdc = FDC()
 
     await fdc.set_lur_temp(1, set_point_C)
