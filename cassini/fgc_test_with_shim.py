@@ -5,7 +5,7 @@ import asyncio
 import time
 import loguru; LOG = loguru.logger
 import sys
-import argus.config
+# import argus.config
 from rcembedded.readcoor.rc_pcb_fgc.cs1.interface import FGC
 from rcembedded.oem.maestro.v7.interface import RcMaestro
 from argus.config.instrument_models.cs1.cs1_wrapper import CS1_Wrapper
