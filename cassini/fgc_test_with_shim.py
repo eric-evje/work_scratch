@@ -236,13 +236,14 @@ async def move_carrier():
     return
 
 async def sipper_breakin(sc_motion):
+    print(sc_motion)
     # fgc = FGC()
     
     input("Press ENTER to home motors ... ")
     # await home_all_axes()
 
-    input("Press ENTER to home carrier and move to safe position ... ")
     if sc_motion:
+        input("Press ENTER to home carrier and move to safe position ... ")
         await move_carrier()
 
     input("Press ENTER to move X to safe position ... ")
