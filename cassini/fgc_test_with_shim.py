@@ -324,12 +324,13 @@ if __name__ == "__main__":
     sc_motion = True
     n = len(sys.argv)
     if n > 1:
-        sc_motion = sys.argv[1]
         if sys.argv[1] == '-m':
             sc_motion = False
         else:
+            print("#" * 80)
             print("WARNING: Did you mean -m ?")
             print("Will try to move sample carrier motors")
+            print("#" * 80)
 
     while selection.lower() != 'q':
         selection = input("******\nFor sipper test and exit, press [ENTER], for extract install [1], for peri tube install [2], [Q] to quit: ")
