@@ -4,8 +4,7 @@
 import asyncio
 import time
 import loguru; LOG = loguru.logger
-import os
-import json
+import sys
 import argus.config
 from rcembedded.readcoor.rc_pcb_fgc.cs1.interface import FGC
 from rcembedded.oem.maestro.v7.interface import RcMaestro
@@ -236,14 +235,15 @@ async def move_carrier():
         pa_y_nm=results['carrier_y'])
     return
 
-async def sipper_breakin():
+async def sipper_breakin(sc_motion):
     fgc = FGC()
     
     input("Press ENTER to home motors ... ")
     await home_all_axes()
 
     input("Press ENTER to home carrier and move to safe position ... ")
-    await move_carrier()
+    if sc_motion:
+        await move_carrier()
 
     input("Press ENTER to move X to safe position ... ")
     position = 325000000
@@ -320,13 +320,23 @@ async def peri_tube_breakin():
 
 if __name__ == "__main__":
     selection = ''
+    sc_motion = True
+    n = len(sys.argv)
+    if n > 1:
+        sc_motion = sys.argv[1]
+        if sys.argv[1] == '-m':
+            sc_motion = False
+        else:
+            print("WARNING: Did you mean -m ?")
+            print("Will try to move sample carrier motors")
+
     while selection.lower() != 'q':
         selection = input("******\nFor sipper test and exit, press [ENTER], for extract install [1], for peri tube install [2], [Q] to quit: ")
         if selection == '':
             asyncio.run(main())
             selection = 'Q'
         elif selection == '1':
-            asyncio.run(sipper_breakin())
+            asyncio.run(sipper_breakin(sc_motion))
             asyncio.run(sipper_test())
         elif selection == '2':
             asyncio.run(peri_tube_breakin())
