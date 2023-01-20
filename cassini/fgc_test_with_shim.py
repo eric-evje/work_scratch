@@ -1,11 +1,7 @@
-#from cgi import test
-#from re import M
-#from interface import Cs1RcSCC
 import asyncio
 import time
 import loguru; LOG = loguru.logger
 import sys
-# import argus.config
 from rcembedded.readcoor.rc_pcb_fgc.cs1.interface import FGC
 from rcembedded.oem.maestro.v7.interface import RcMaestro
 from argus.config.instrument_models.cs1.cs1_wrapper import CS1_Wrapper
@@ -236,11 +232,10 @@ async def move_carrier():
     return
 
 async def sipper_breakin(sc_motion):
-    print(sc_motion)
-    # fgc = FGC()
+    fgc = FGC()
     
     input("Press ENTER to home motors ... ")
-    # await home_all_axes()
+    await home_all_axes()
 
     if sc_motion:
         input("Press ENTER to home carrier and move to safe position ... ")
@@ -333,7 +328,7 @@ if __name__ == "__main__":
             print("#" * 80)
 
     while selection.lower() != 'q':
-        selection = input("******\nFor sipper test and exit, press [ENTER], for extract install [1], for peri tube install [2], [Q] to quit: ")
+        selection = input("******\nFor FGC test and exit, press [ENTER], for extract install [1], for peri tube install [2], [Q] to quit: ")
         if selection == '':
             asyncio.run(main())
             selection = 'Q'
